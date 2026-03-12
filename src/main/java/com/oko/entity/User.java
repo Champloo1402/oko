@@ -26,6 +26,9 @@ public class User {
     @Column(name = "display_name")
     private String displayName;
 
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
     @Column(name = "avatar_url")
     private String avatarUrl;
 
