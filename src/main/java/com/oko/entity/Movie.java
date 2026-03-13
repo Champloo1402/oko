@@ -15,6 +15,9 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "tmdb_id", unique = true)
+    private Long tmdbId;
+
     @Column(nullable = false)
     private String title;
 
@@ -22,7 +25,7 @@ public class Movie {
     private String originalTitle;
 
     @Column(columnDefinition = "TEXT")
-    private String synopsis;
+    private String overview;
 
     @Column(name = "release_year")
     private Integer releaseYear;
