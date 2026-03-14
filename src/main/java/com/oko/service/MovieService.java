@@ -36,7 +36,7 @@ public class MovieService {
         return mapToMovieResponse(movie);
     }
 
-    private MovieResponse mapToMovieResponse(Movie movie){
+    public MovieResponse mapToMovieResponse(Movie movie){
         MovieResponse movieResponse = new MovieResponse();
         movieResponse.setId(movie.getId());
         movieResponse.setTmdbId(movie.getTmdbId());
@@ -58,5 +58,10 @@ public class MovieService {
                 .collect(Collectors.toList());
         movieResponse.setGenres(genres);
         return movieResponse;
+    }
+
+    public Movie getMovieEntityById(Long id) {
+        return movieRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
     }
 }
