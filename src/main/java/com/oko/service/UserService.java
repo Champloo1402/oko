@@ -21,4 +21,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found "));
     }
 
+    @Transactional(readOnly = true)
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
 }
