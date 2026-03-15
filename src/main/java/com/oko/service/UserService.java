@@ -3,6 +3,7 @@ package com.oko.service;
 import com.oko.dto.request.UpdateProfileRequest;
 import com.oko.dto.response.MovieResponse;
 import com.oko.dto.response.UserProfileResponse;
+import com.oko.dto.response.UserSummaryResponse;
 import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.repository.UserFollowRepository;
@@ -92,6 +93,17 @@ public class UserService {
 
         userRepository.save(user);
         return getUserProfile(user.getUsername());
+    }
+
+    public UserSummaryResponse mapToUserSummaryResponse(User user){
+        UserSummaryResponse response = new UserSummaryResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setDisplayName(user.getDisplayName());
+        response.setAvatarUrl(user.getAvatarUrl());
+        response.setRole(user.getRole().name());
+
+        return response;
     }
 
 }
