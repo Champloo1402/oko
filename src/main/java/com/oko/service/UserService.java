@@ -1,18 +1,28 @@
 package com.oko.service;
 
+import com.oko.dto.request.UpdateProfileRequest;
+import com.oko.dto.response.MovieResponse;
+import com.oko.dto.response.UserProfileResponse;
 import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
+import com.oko.repository.UserFollowRepository;
 import com.oko.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserFollowRepository userFollowRepository;
+    private final MovieService movieService;
 
     @Transactional(readOnly = true)
     public User getCurrentUser() {
@@ -25,6 +35,63 @@ public class UserService {
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        User currentUser = getCurrentUser();
+
+        UserProfileResponse response = new UserProfileResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setDisplayName(user.getDisplayName());
+        response.setAvatarUrl(user.getAvatarUrl());
+        response.setBio(user.getBio());
+
+        List<MovieResponse> favFilms = Stream.of(user.getFavoriteFilm1(),
+                        user.getFavoriteFilm2(), user.getFavoriteFilm3(),
+                        user.getFavoriteFilm4(), user.getFavoriteFilm5())
+                .filter(Objects::nonNull)
+                .map(movieService::mapToMovieResponse).toList();
+
+        response.setFavFilms(favFilms);
+
+        Integer followerCount = userFollowRepository.findByFollowing(user).size();
+        Integer followingCount = userFollowRepository.findByFollower(user).size();
+
+        response.setFollowerCount(followerCount);
+        response.setFollowingCount(followingCount);
+
+        response.setFollowedByCurrentUser(userFollowRepository.existsByFollowerAndFollowing(currentUser, user));
+
+        return response;
+    }
+
+    @Transactional
+    public UserProfileResponse updateProfile(UpdateProfileRequest request) {
+        User user = getCurrentUser();
+
+        if (request.getUsername() != null) user.setUsername(request.getUsername());
+        if (request.getDisplayName() != null) user.setDisplayName(request.getDisplayName());
+        if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
+        if (request.getBio() != null) user.setBio(request.getBio());
+
+        if (request.getFavoriteFilm1Id() != null)
+            user.setFavoriteFilm1(movieService.getMovieEntityById(request.getFavoriteFilm1Id()));
+        if (request.getFavoriteFilm2Id() != null)
+            user.setFavoriteFilm2(movieService.getMovieEntityById(request.getFavoriteFilm2Id()));
+        if (request.getFavoriteFilm3Id() != null)
+            user.setFavoriteFilm3(movieService.getMovieEntityById(request.getFavoriteFilm3Id()));
+        if (request.getFavoriteFilm4Id() != null)
+            user.setFavoriteFilm4(movieService.getMovieEntityById(request.getFavoriteFilm4Id()));
+        if (request.getFavoriteFilm5Id() != null)
+            user.setFavoriteFilm5(movieService.getMovieEntityById(request.getFavoriteFilm5Id()));
+
+        userRepository.save(user);
+        return getUserProfile(user.getUsername());
     }
 
 }
