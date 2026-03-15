@@ -54,7 +54,7 @@ public class SocialService {
 
         return userFollowRepository.findByFollowing(user)
                 .stream()
-                .map(follow -> mapToUserSummaryResponse(follow.getFollower()))
+                .map(follow -> userService.mapToUserSummaryResponse(follow.getFollower()))
                 .toList();
     }
 
@@ -64,16 +64,7 @@ public class SocialService {
 
         return userFollowRepository.findByFollower(user)
                 .stream()
-                .map(follower -> mapToUserSummaryResponse(follower.getFollowing()))
+                .map(follower -> userService.mapToUserSummaryResponse(follower.getFollowing()))
                 .toList();
-    }
-
-    private UserSummaryResponse mapToUserSummaryResponse(User user){
-        UserSummaryResponse response = new UserSummaryResponse();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setDisplayName(user.getDisplayName());
-        response.setAvatarUrl(user.getAvatarUrl());
-        return response;
     }
 }
