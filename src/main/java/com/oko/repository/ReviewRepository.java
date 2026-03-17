@@ -16,9 +16,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByMovie(Movie movie,  Pageable pageable);
     Page<Review> findByUser(User user,   Pageable pageable);
     Optional<Review> findByUserAndMovie(User user, Movie movie);
-
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.movie = :movie")
     Optional<Double> findAverageRatingByMovie(Movie movie);
-
     void deleteByUser(User user);
+    List<Review> findByUserInOrderByCreatedAtDesc(List<User> users);
 }

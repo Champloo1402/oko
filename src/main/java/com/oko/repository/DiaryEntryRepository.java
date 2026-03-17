@@ -11,5 +11,6 @@ import java.util.List;
 public interface DiaryEntryRepository extends JpaRepository<DiaryEntry, Long> {
     Page<DiaryEntry> findByUserOrderByWatchedOnDesc(User user, Pageable pageable);
     void deleteByUser(User user);
+    List<DiaryEntry> findByUserInOrderByWatchedOnDesc(List<User> users);
 
 }
