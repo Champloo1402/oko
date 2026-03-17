@@ -1,5 +1,6 @@
 package com.oko.external.tmdb;
 
+import com.oko.external.tmdb.dto.TmdbCreditsResponse;
 import com.oko.external.tmdb.dto.TmdbMovieDetailResponse;
 import com.oko.external.tmdb.dto.TmdbMovieResponse;
 import com.oko.external.tmdb.dto.TmdbSearchResponse;
@@ -44,6 +45,14 @@ public class TmdbClient {
                 .uri("/movie/{id}", tmdbId)
                 .retrieve()
                 .bodyToMono(TmdbMovieDetailResponse.class)
+                .block();
+    }
+
+    public TmdbCreditsResponse getMovieCredits(Long tmdbId) {
+        return webClient.get()
+                .uri("/movie/{id}/credits", tmdbId)
+                .retrieve()
+                .bodyToMono(TmdbCreditsResponse.class)
                 .block();
     }
 }

@@ -2,11 +2,17 @@ package com.oko.service;
 
 import com.oko.entity.Genre;
 import com.oko.entity.Movie;
+import com.oko.entity.MovieCast;
+import com.oko.entity.Person;
 import com.oko.external.tmdb.TmdbClient;
+import com.oko.external.tmdb.dto.TmdbCastResponse;
+import com.oko.external.tmdb.dto.TmdbCreditsResponse;
 import com.oko.external.tmdb.dto.TmdbGenreResponse;
 import com.oko.external.tmdb.dto.TmdbMovieDetailResponse;
 import com.oko.repository.GenreRepository;
+import com.oko.repository.MovieCastRepository;
 import com.oko.repository.MovieRepository;
+import com.oko.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +27,8 @@ public class TmdbService {
     private final TmdbClient tmdbClient;
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
-
-    @Transactional
-    public Movie syncMovie(Long tmdbId) {
-        return movieRepository.findByTmdbId(tmdbId)
-                .orElseGet(() -> {
-                    Movie movie = mapToMovie(tmdbClient.getMovieById(tmdbId));
-                    return movieRepository.save(movie);
-        });
-
-    }
+    private final PersonRepository personRepository;
+    private final MovieCastRepository movieCastRepository;
 
     private Movie mapToMovie(TmdbMovieDetailResponse response) {
         Movie movie = new Movie();
@@ -58,6 +56,75 @@ public class TmdbService {
                     Genre genre = new Genre();
                     genre.setName(tmdbGenre.getName());
                     return genreRepository.save(genre);
+                });
+    }
+
+    @Transactional
+    public Movie syncMovie(Long tmdbId) {
+        return movieRepository.findByTmdbId(tmdbId)
+                .orElseGet(() -> {
+                    Movie movie = mapToMovie(tmdbClient.getMovieById(tmdbId));
+                    Movie savedMovie = movieRepository.save(movie);
+                    syncCredits(savedMovie, tmdbId);
+                    return savedMovie;
+                });
+    }
+
+    private void syncCredits(Movie movie, Long tmdbId) {
+        TmdbCreditsResponse credits = tmdbClient.getMovieCredits(tmdbId);
+
+        if (credits.getCast() != null) {
+            credits.getCast().stream()
+                    .limit(10)
+                    .forEach(tmdbCast -> {
+                        Person person = findOrCreatePerson(tmdbCast);
+                        MovieCast cast = new MovieCast();
+                        cast.setMovie(movie);
+                        cast.setPerson(person);
+                        cast.setCharacterName(tmdbCast.getCharacter());
+                        cast.setRoleType(MovieCast.RoleType.ACTOR);
+                        cast.setOrderIndex(tmdbCast.getOrder());
+                        movieCastRepository.save(cast);
+                    });
+        }
+
+        if (credits.getCrew() != null) {
+            credits.getCrew().stream()
+                    .filter(c -> "Director".equals(c.getJob()))
+                    .forEach(tmdbCrew -> {
+                        Person person = findOrCreatePerson(tmdbCrew);
+                        MovieCast cast = new MovieCast();
+                        cast.setMovie(movie);
+                        cast.setPerson(person);
+                        cast.setRoleType(MovieCast.RoleType.DIRECTOR);
+                        movieCastRepository.save(cast);
+                    });
+        }
+
+        if (credits.getCrew() != null) {
+            credits.getCrew().stream()
+                    .filter(c -> "Writer".equals(c.getJob()) || "Screenplay".equals(c.getJob()))
+                    .forEach(tmdbCrew -> {
+                        Person person = findOrCreatePerson(tmdbCrew);
+                        MovieCast cast = new MovieCast();
+                        cast.setMovie(movie);
+                        cast.setPerson(person);
+                        cast.setRoleType(MovieCast.RoleType.WRITER);
+                        movieCastRepository.save(cast);
+                    });
+        }
+    }
+
+    private Person findOrCreatePerson(TmdbCastResponse tmdbPerson) {
+        return personRepository.findByTmdbId(tmdbPerson.getId())
+                .orElseGet(() -> {
+                    Person person = new Person();
+                    person.setTmdbId(tmdbPerson.getId());
+                    person.setName(tmdbPerson.getName());
+                    if (tmdbPerson.getProfilePath() != null) {
+                        person.setPhotoUrl("https://image.tmdb.org/t/p/w500" + tmdbPerson.getProfilePath());
+                    }
+                    return personRepository.save(person);
                 });
     }
 }

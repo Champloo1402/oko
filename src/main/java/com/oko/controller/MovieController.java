@@ -1,8 +1,10 @@
 package com.oko.controller;
 
+import com.oko.dto.response.MovieCastResponse;
 import com.oko.dto.response.MovieResponse;
 import com.oko.external.tmdb.dto.TmdbMovieResponse;
 import com.oko.service.MovieService;
+import com.oko.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.List;
 public class MovieController {
 
     private final MovieService movieService;
+    private final PersonService personService;
 
     @GetMapping("/search")
     public List<TmdbMovieResponse> searchMovie(@RequestParam String query) {
@@ -32,5 +35,10 @@ public class MovieController {
     public MovieResponse syncMovie(@PathVariable Long tmdbId) {
         return movieService.syncMovie(tmdbId);
 
+    }
+
+    @GetMapping("/{id}/cast")
+    public List<MovieCastResponse> getMovieCast(@PathVariable Long id) {
+        return personService.getMovieCast(id);
     }
 }
