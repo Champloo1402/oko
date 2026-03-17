@@ -87,4 +87,34 @@ public class MovieService {
         return movieRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
     }
+
+    public List<MovieResponse> filterMovies(String title, Integer year, String language, String genre) {
+        List<Movie> movies = movieRepository.findAll();
+
+        if (title != null) {
+            movies = movies.stream()
+                    .filter(m -> m.getTitle().toLowerCase().contains(title.toLowerCase()))
+                    .toList();
+        }
+        if (year != null) {
+            movies = movies.stream()
+                    .filter(m -> year.equals(m.getReleaseYear()))
+                    .toList();
+        }
+        if (language != null) {
+            movies = movies.stream()
+                    .filter(m -> language.equals(m.getLanguage()))
+                    .toList();
+        }
+        if (genre != null) {
+            movies = movies.stream()
+                    .filter(m -> m.getGenres().stream()
+                            .anyMatch(g -> g.getName().equalsIgnoreCase(genre)))
+                    .toList();
+        }
+
+        return movies.stream()
+                .map(this::mapToMovieResponse)
+                .toList();
+    }
 }

@@ -4,17 +4,21 @@ import com.oko.dto.request.UpdateProfileRequest;
 import com.oko.dto.response.MovieResponse;
 import com.oko.dto.response.UserProfileResponse;
 import com.oko.dto.response.UserSummaryResponse;
+import com.oko.entity.Genre;
 import com.oko.entity.User;
+import com.oko.entity.WatchedMovie;
 import com.oko.exception.ResourceNotFoundException;
-import com.oko.repository.UserFollowRepository;
-import com.oko.repository.UserRepository;
+import com.oko.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.oko.dto.response.UserStatsResponse;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -24,6 +28,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserFollowRepository userFollowRepository;
     private final MovieService movieService;
+    private final WatchedMovieRepository watchedMovieRepository;
+    private final ReviewRepository reviewRepository;
+    private final DiaryEntryRepository diaryEntryRepository;
+
 
     @Transactional(readOnly = true)
     public User getCurrentUser() {
@@ -96,6 +104,7 @@ public class UserService {
         return getUserProfile(user.getUsername());
     }
 
+    @Transactional(readOnly = true)
     public UserSummaryResponse mapToUserSummaryResponse(User user){
         UserSummaryResponse response = new UserSummaryResponse();
         response.setId(user.getId());
@@ -104,6 +113,42 @@ public class UserService {
         response.setAvatarUrl(user.getAvatarUrl());
         response.setRole(user.getRole().name());
 
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public UserStatsResponse getUserStats(String username) {
+        User user = getUserByUsername(username);
+
+        int totalFilmsWatched = watchedMovieRepository.countByUser(user);
+
+        List<WatchedMovie> watchedMovies = watchedMovieRepository.findByUser(user);
+        int totalMinutes = watchedMovies.stream()
+                .map(w -> w.getMovie().getRuntimeMinutes())
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+        int totalHoursWatched = totalMinutes / 60;
+
+        String mostWatchedGenre = watchedMovies.stream()
+                .flatMap(w -> w.getMovie().getGenres().stream())
+                .collect(Collectors.groupingBy(Genre::getName, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        int totalReviews = reviewRepository.countByUser(user);
+
+        int totalDiaryEntries = diaryEntryRepository.countByUser(user);
+
+        UserStatsResponse response = new UserStatsResponse();
+        response.setUsername(user.getUsername());
+        response.setTotalFilmsWatched(totalFilmsWatched);
+        response.setTotalHoursWatched(totalHoursWatched);
+        response.setMostWatchedGenre(mostWatchedGenre);
+        response.setTotalReviews(totalReviews);
+        response.setTotalDiaryEntries(totalDiaryEntries);
         return response;
     }
 

@@ -13,4 +13,5 @@ public interface WatchedMovieRepository extends JpaRepository<WatchedMovie, Long
     int countByUser(User user);
     void deleteByUser(User user);
     List<WatchedMovie> findByUserInOrderByWatchedAtDesc(List<User> users);
+    List<WatchedMovie> findByUser(User user);
 }

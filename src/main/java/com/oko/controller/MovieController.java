@@ -41,4 +41,14 @@ public class MovieController {
     public List<MovieCastResponse> getMovieCast(@PathVariable Long id) {
         return personService.getMovieCast(id);
     }
+
+    @GetMapping("/filter")
+    public List<MovieResponse> filterMovies(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String language,
+            @RequestParam(required = false) String genre) {
+        return movieService.filterMovies(title, year, language, genre);
+    }
+
 }

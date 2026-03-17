@@ -20,4 +20,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Double> findAverageRatingByMovie(Movie movie);
     void deleteByUser(User user);
     List<Review> findByUserInOrderByCreatedAtDesc(List<User> users);
+    int countByUser(User user);
 }
