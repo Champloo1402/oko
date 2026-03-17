@@ -117,4 +117,8 @@ public class MovieService {
                 .map(this::mapToMovieResponse)
                 .toList();
     }
+
+    public List<TmdbMovieResponse> getPopularMovies() {
+        return tmdbClient.getPopularMovies();
+    }
 }

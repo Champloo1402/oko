@@ -55,4 +55,13 @@ public class TmdbClient {
                 .bodyToMono(TmdbCreditsResponse.class)
                 .block();
     }
+
+    public List<TmdbMovieResponse> getPopularMovies() {
+        return webClient.get()
+                .uri("/movie/popular")
+                .retrieve()
+                .bodyToMono(TmdbSearchResponse.class)
+                .block()
+                .getResults();
+    }
 }

@@ -22,6 +22,7 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final MovieCastRepository movieCastRepository;
     private final MovieRepository movieRepository;
+    private final MovieService movieService;
 
     @Transactional(readOnly = true)
     public PersonResponse getPersonById(Long id) {
@@ -66,6 +67,7 @@ public class PersonService {
         response.setCharacterName(cast.getCharacterName());
         response.setRoleType(cast.getRoleType().name());
         response.setOrderIndex(cast.getOrderIndex());
+        response.setMovie(movieService.mapToMovieResponse(cast.getMovie()));
         return response;
     }
 }

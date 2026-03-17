@@ -51,4 +51,9 @@ public class MovieController {
         return movieService.filterMovies(title, year, language, genre);
     }
 
+    @GetMapping("/popular")
+    public List<TmdbMovieResponse> getPopularMovies() {
+        return movieService.getPopularMovies();
+    }
+
 }

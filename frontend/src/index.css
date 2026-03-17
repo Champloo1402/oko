@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --oko-bg:        #14181c;
+  --oko-surface:   #1f2937;
+  --oko-border:    #374151;
+  --oko-muted:     #9ca3af;
+  --oko-text:      #e5e7eb;
+  --oko-red:       #e84040;
+  --oko-red-dark:  #c42a2a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--oko-bg);
+  color: var(--oko-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--oko-bg); }
+::-webkit-scrollbar-thumb { background: var(--oko-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--oko-muted); }
+
+/* Loading spinner orbit animation */
+@keyframes oko-orbit {
+  from { transform: rotate(0deg) translateX(9px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(9px) rotate(-360deg); }
+}
+@keyframes oko-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  93% { transform: scaleY(0.07); }
+}
+@keyframes oko-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in  { animation: fade-in 0.4s ease forwards; }
+.animate-slide-up { animation: slide-up 0.5s ease forwards; }
+
+/* Star rating */
+.star-half {
+  background: linear-gradient(to right, var(--oko-red) 50%, var(--oko-border) 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Spoiler blur */
+.spoiler-blur { filter: blur(5px); transition: filter 0.3s; user-select: none; }
+.spoiler-blur.revealed { filter: none; user-select: auto; }
+
+/* Hero side-fade panels — used on Landing */
+.hero-wrap { position: relative; overflow: hidden; }
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+.hero-fade-left {
+  position: absolute; inset: 0 auto 0 0;
+  width: 22%;
+  background: linear-gradient(to right, #14181c 0%, #14181c 20%, rgba(20,24,28,0.85) 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+.hero-fade-right {
+  position: absolute; inset: 0 0 0 auto;
+  width: 22%;
+  background: linear-gradient(to left, #14181c 0%, #14181c 20%, rgba(20,24,28,0.85) 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+.hero-fade-bottom {
+  position: absolute; inset: auto 0 0 0;
+  height: 60%;
+  background: linear-gradient(to top, #14181c 0%, rgba(20,24,28,0.85) 40%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}

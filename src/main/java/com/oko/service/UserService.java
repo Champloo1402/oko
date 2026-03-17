@@ -1,19 +1,17 @@
 package com.oko.service;
 
 import com.oko.dto.request.UpdateProfileRequest;
-import com.oko.dto.response.MovieResponse;
-import com.oko.dto.response.UserProfileResponse;
-import com.oko.dto.response.UserSummaryResponse;
+import com.oko.dto.response.*;
 import com.oko.entity.Genre;
 import com.oko.entity.User;
 import com.oko.entity.WatchedMovie;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.oko.dto.response.UserStatsResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -150,6 +148,12 @@ public class UserService {
         response.setTotalReviews(totalReviews);
         response.setTotalDiaryEntries(totalDiaryEntries);
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<UserSummaryResponse> searchUsers(String query, Pageable pageable) {
+        return PageResponse.of(userRepository.findByUsernameContainingIgnoreCase(query, pageable)
+                .map(this::mapToUserSummaryResponse));
     }
 
 }

@@ -9,4 +9,5 @@ public class MovieCastResponse {
     private String characterName;
     private String roleType;
     private Integer orderIndex;
+    private MovieResponse movie;
 }

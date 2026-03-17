@@ -34,3 +34,5 @@ build/
 
 ### API Key ###
 .env
+frontend/node_modules/
+frontend/build/
