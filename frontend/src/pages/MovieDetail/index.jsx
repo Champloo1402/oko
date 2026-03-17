@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   getMovie, getMovieCast, getMovieReviews,
@@ -6,13 +6,14 @@ import {
   markWatched, unmarkWatched, getWatchedStatus,
   addToWatchlist, removeFromWatchlist, getMyWatchlist,
   createDiaryEntry, createReview, deleteReview,
+  getUserLists, addMovieToList,
 } from '../../api';
 import { StarDisplay, StarInput } from '../../components/StarRating';
 import ReviewCard from '../../components/ReviewCard';
 import { OkoSpinner } from '../../components/Logo';
 import { useAuth } from '../../context/AuthContext';
 import {
-  HeartIcon, EyeIcon, BookmarkIcon, PencilSquareIcon, CheckIcon,
+  HeartIcon, EyeIcon, BookmarkIcon, PencilSquareIcon, CheckIcon, QueueListIcon,
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartSolid, EyeIcon as EyeSolid, BookmarkIcon as BookmarkSolid,
@@ -31,15 +32,22 @@ export default function MovieDetail() {
   const [error,    setError]    = useState('');
 
   // User states
-  const [liked,           setLiked]           = useState(false);
-  const [watched,         setWatched]         = useState(false);
-  const [likeCount,       setLikeCount]       = useState(0);
-  const [inWatchlist,     setInWatchlist]     = useState(false);
+  const [liked,            setLiked]            = useState(false);
+  const [watched,          setWatched]          = useState(false);
+  const [likeCount,        setLikeCount]        = useState(0);
+  const [inWatchlist,      setInWatchlist]      = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
 
+  // Add to list dropdown
+  const [showListDropdown, setShowListDropdown] = useState(false);
+  const [userLists,        setUserLists]        = useState([]);
+  const [listsLoading,     setListsLoading]     = useState(false);
+  const [addingToList,     setAddingToList]     = useState(null); // listId currently being added
+  const listDropdownRef = useRef(null);
+
   // Toast notification
-  const [toast,     setToast]     = useState('');   // message string
-  const [toastType, setToastType] = useState('ok'); // 'ok' | 'err'
+  const [toast,     setToast]     = useState('');
+  const [toastType, setToastType] = useState('ok');
 
   // Review modal
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -144,6 +152,44 @@ export default function MovieDetail() {
       setWatchlistLoading(false);
     }
   };
+
+  // Add to list — open dropdown and load user's lists on first open
+  const openListDropdown = async () => {
+    setShowListDropdown((v) => !v);
+    if (userLists.length > 0) return; // already loaded
+    setListsLoading(true);
+    try {
+      const { data } = await getUserLists(user.username);
+      setUserLists(Array.isArray(data) ? data : []);
+    } catch {}
+    finally { setListsLoading(false); }
+  };
+
+  const handleAddToList = async (listId, listName) => {
+    if (addingToList) return;
+    setAddingToList(listId);
+    try {
+      await addMovieToList(listId, localId);
+      showToast(`Added to "${listName}"`);
+      setShowListDropdown(false);
+    } catch {
+      showToast('Could not add to list', 'err');
+    } finally {
+      setAddingToList(null);
+    }
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showListDropdown) return;
+    const handler = (e) => {
+      if (listDropdownRef.current && !listDropdownRef.current.contains(e.target)) {
+        setShowListDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showListDropdown]);
 
   // Submit review
   const submitReview = async (e) => {
@@ -308,7 +354,6 @@ export default function MovieDetail() {
                            label={watched ? 'Watched' : 'Mark watched'}
                            activeClass="bg-green-900/30 border-green-600 text-green-400"
                 />
-                {/* Watchlist button — spinner while loading, checkmark + teal when added */}
                 <ActionBtn
                     onClick={toggleWatchlist}
                     disabled={watchlistLoading}
@@ -330,6 +375,45 @@ export default function MovieDetail() {
                     label="Write review"
                     primary
                 />
+                {/* Add to list — dropdown */}
+                <div className="relative" ref={listDropdownRef}>
+                  <ActionBtn
+                      onClick={openListDropdown}
+                      icon={<QueueListIcon className="w-4 h-4" />}
+                      label="Add to list"
+                      active={showListDropdown}
+                      activeClass="bg-white/5 border-oko-muted text-oko-text"
+                  />
+                  {showListDropdown && (
+                      <div className="absolute left-0 top-full mt-1 w-56 bg-oko-surface border border-oko-border rounded-lg shadow-xl z-30 py-1 animate-fade-in">
+                        {listsLoading ? (
+                            <div className="flex justify-center py-4"><OkoSpinner size={24} /></div>
+                        ) : userLists.length === 0 ? (
+                            <div className="px-4 py-3 text-xs text-oko-subtle">
+                              No lists yet.{' '}
+                              <Link to={`/users/${user.username}`} className="text-oko-red hover:underline" onClick={() => setShowListDropdown(false)}>
+                                Create one →
+                              </Link>
+                            </div>
+                        ) : (
+                            userLists.map((list) => (
+                                <button
+                                    key={list.id}
+                                    onClick={() => handleAddToList(list.id, list.name)}
+                                    disabled={addingToList === list.id}
+                                    className="w-full text-left px-4 py-2.5 text-sm text-oko-muted hover:text-oko-text hover:bg-white/5 transition-colors flex items-center justify-between gap-2 disabled:opacity-50"
+                                >
+                                  <span className="truncate">{list.name}</span>
+                                  {addingToList === list.id
+                                      ? <OkoSpinner size={14} />
+                                      : <span className="text-[10px] text-oko-faint flex-shrink-0">{list.movies?.length ?? list.movieCount ?? 0} films</span>
+                                  }
+                                </button>
+                            ))
+                        )}
+                      </div>
+                  )}
+                </div>
                 <ActionBtn active={liked} onClick={toggleLike}
                            icon={liked ? <HeartSolid className="w-4 h-4" /> : <HeartIcon className="w-4 h-4" />}
                            label={`${likeCount}`}

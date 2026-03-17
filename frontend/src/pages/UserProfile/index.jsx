@@ -4,7 +4,7 @@ import {
   getUserProfile, getUserStats, getUserReviews,
   getDiary, getUserWatchlist, getUserLists,
   followUser, unfollowUser, getFollowers, getFollowing,
-  searchMovies, syncMovie, updateMyProfile,
+  searchMovies, syncMovie, updateMyProfile, createList,
 } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { StarDisplay } from '../../components/StarRating';
@@ -42,6 +42,12 @@ export default function UserProfile() {
   const [socialLoading,   setSocialLoading]   = useState(false);
   const [socialFollowing, setSocialFollowing] = useState({}); // { [username]: bool }
   const [socialPending,   setSocialPending]   = useState({}); // { [username]: bool }
+
+  // Create list modal
+  const [showCreateList, setShowCreateList] = useState(false);
+  const [listForm,       setListForm]       = useState({ name: '', description: '', publicList: true });
+  const [listCreating,   setListCreating]   = useState(false);
+  const [listError,      setListError]      = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -200,6 +206,26 @@ export default function UserProfile() {
       setSocialFollowing((p) => ({ ...p, [targetUsername]: isFollowing }));
     } finally {
       setSocialPending((p) => ({ ...p, [targetUsername]: false }));
+    }
+  };
+
+  const handleCreateList = async (e) => {
+    e.preventDefault();
+    if (!listForm.name.trim()) return;
+    setListCreating(true);
+    setListError('');
+    try {
+      const { data } = await createList(listForm);
+      // Refresh the Lists tab data
+      setTabData((prev) => [data, ...prev]);
+      setShowCreateList(false);
+      setListForm({ name: '', description: '', publicList: true });
+      // Switch to Lists tab so user sees the new list
+      setTab('Lists');
+    } catch {
+      setListError('Could not create list. Please try again.');
+    } finally {
+      setListCreating(false);
     }
   };
 
@@ -407,7 +433,7 @@ export default function UserProfile() {
 
         {/* ── Tabs ────────────────────────────────────────────────────────── */}
         <div className="border-b border-oko-border mb-6">
-          <div className="flex gap-0">
+          <div className="flex items-center gap-0">
             {TABS.map((t) => (
                 <button
                     key={t}
@@ -421,16 +447,90 @@ export default function UserProfile() {
                   {t}
                 </button>
             ))}
+            {/* New List button — only on Lists tab for the owner */}
+            {isSelf && tab === 'Lists' && (
+                <button
+                    onClick={() => { setShowCreateList(true); setListError(''); }}
+                    className="ml-auto mb-1 text-xs font-medium bg-oko-red hover:bg-oko-red-dark text-white px-3 py-1.5 rounded-md transition-colors"
+                >
+                  + New list
+                </button>
+            )}
           </div>
         </div>
 
         {/* ── Tab content ─────────────────────────────────────────────────── */}
         {tabLoading ? (
             <div className="flex justify-center py-12"><OkoSpinner size={40} /></div>
-        ) : tabData.length === 0 ? (
+        ) : tabData.length === 0 && tab !== 'Lists' ? (
             <p className="text-sm text-oko-subtle py-8">Nothing here yet.</p>
+        ) : tabData.length === 0 && tab === 'Lists' ? (
+            <div className="py-8 text-center">
+              <p className="text-sm text-oko-subtle mb-3">No lists yet.</p>
+              {isSelf && (
+                  <button
+                      onClick={() => { setShowCreateList(true); setListError(''); }}
+                      className="text-sm text-oko-red hover:underline"
+                  >
+                    Create your first list →
+                  </button>
+              )}
+            </div>
         ) : (
-            <TabContent tab={tab} data={tabData} username={username} />
+            <TabContent tab={tab} data={tabData} username={username} isSelf={isSelf} />
+        )}
+
+        {/* ── Create list modal ────────────────────────────────────────────── */}
+        {showCreateList && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="w-full max-w-md bg-oko-surface border border-oko-border rounded-xl shadow-2xl animate-slide-up">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-oko-border">
+                  <h3 className="font-semibold text-sm text-oko-text">New list</h3>
+                  <button onClick={() => setShowCreateList(false)} className="text-oko-subtle hover:text-oko-text text-xl leading-none">×</button>
+                </div>
+                <form onSubmit={handleCreateList} className="px-5 py-5 space-y-4">
+                  <div>
+                    <label className="block text-xs text-oko-muted mb-1.5">Name <span className="text-oko-red">*</span></label>
+                    <input
+                        autoFocus
+                        type="text"
+                        value={listForm.name}
+                        onChange={(e) => setListForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="e.g. Best films of 2024"
+                        required
+                        className="w-full bg-oko-bg border border-oko-border rounded-md px-3 py-2 text-sm text-oko-text placeholder-oko-faint focus:outline-none focus:border-oko-red"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-oko-muted mb-1.5">Description <span className="text-oko-faint">(optional)</span></label>
+                    <textarea
+                        value={listForm.description}
+                        onChange={(e) => setListForm((f) => ({ ...f, description: e.target.value }))}
+                        rows={3}
+                        placeholder="What's this list about?"
+                        className="w-full bg-oko-bg border border-oko-border rounded-md px-3 py-2 text-sm text-oko-text placeholder-oko-faint focus:outline-none focus:border-oko-red resize-none"
+                    />
+                  </div>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <div
+                        onClick={() => setListForm((f) => ({ ...f, publicList: !f.publicList }))}
+                        className={`w-10 h-5 rounded-full transition-colors relative ${listForm.publicList ? 'bg-oko-red' : 'bg-oko-border'}`}
+                    >
+                      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${listForm.publicList ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </div>
+                    <span className="text-sm text-oko-muted">{listForm.publicList ? 'Public' : 'Private'}</span>
+                  </label>
+                  {listError && <p className="text-oko-red text-xs">{listError}</p>}
+                  <button
+                      type="submit"
+                      disabled={listCreating || !listForm.name.trim()}
+                      className="w-full bg-oko-red hover:bg-oko-red-dark text-white font-semibold py-2.5 rounded-md text-sm transition-colors disabled:opacity-50"
+                  >
+                    {listCreating ? 'Creating…' : 'Create list'}
+                  </button>
+                </form>
+              </div>
+            </div>
         )}
 
         {/* ── Followers / Following modal ──────────────────────────────────── */}
@@ -498,7 +598,7 @@ export default function UserProfile() {
   );
 }
 
-function TabContent({ tab, data, username }) {
+function TabContent({ tab, data, username, isSelf }) {
   if (tab === 'Reviews') return (
       <div className="space-y-3">
         {data.map((r) => <ReviewCard key={r.id} review={r} />)}
@@ -543,10 +643,35 @@ function TabContent({ tab, data, username }) {
       <div className="space-y-3">
         {data.map((list) => (
             <Link key={list.id} to={`/lists/${list.id}`}
-                  className="block bg-oko-surface border border-oko-border rounded-lg px-4 py-3 hover:border-oko-red transition-colors">
-              <p className="font-medium text-sm text-oko-text">{list.name}</p>
-              <p className="text-xs text-oko-subtle mt-0.5">{list.description}</p>
-              <p className="text-[11px] text-oko-faint mt-1">{list.movieCount ?? 0} films</p>
+                  className="flex gap-4 items-center bg-oko-surface border border-oko-border rounded-lg px-4 py-3 hover:border-oko-red transition-colors group">
+              {/* Poster preview strip — up to 4 */}
+              {list.movies?.length > 0 && (
+                  <div className="flex gap-1 flex-shrink-0">
+                    {list.movies.slice(0, 4).map((m) => (
+                        <div key={m.id} className="w-8 h-12 rounded overflow-hidden bg-oko-bg border border-oko-border flex-shrink-0">
+                          {m.posterUrl
+                              ? <img src={m.posterUrl} alt={m.title} className="w-full h-full object-cover" />
+                              : <div className="w-full h-full bg-oko-faint/20" />}
+                        </div>
+                    ))}
+                  </div>
+              )}
+              {/* No posters yet — placeholder strip */}
+              {(!list.movies || list.movies.length === 0) && (
+                  <div className="flex gap-1 flex-shrink-0">
+                    {[0,1,2,3].map((i) => (
+                        <div key={i} className="w-8 h-12 rounded bg-oko-bg border border-dashed border-oko-border flex-shrink-0" />
+                    ))}
+                  </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-oko-text group-hover:text-oko-red transition-colors truncate">{list.name}</p>
+                {list.description && <p className="text-xs text-oko-subtle mt-0.5 truncate">{list.description}</p>}
+                <p className="text-[11px] text-oko-faint mt-1">
+                  {list.movies?.length ?? list.movieCount ?? 0} film{(list.movies?.length ?? list.movieCount ?? 0) !== 1 ? 's' : ''}
+                  {!list.publicList && <span className="ml-2 text-oko-faint">· private</span>}
+                </p>
+              </div>
             </Link>
         ))}
       </div>
