@@ -22,6 +22,8 @@ public class AdminService {
     private final DiaryEntryRepository diaryEntryRepository;
     private final WatchlistRepository watchlistRepository;
     private final UserFollowRepository userFollowRepository;
+    private final WatchedMovieRepository watchedMovieRepository;
+
 
     @Transactional(readOnly = true)
     public List<UserSummaryResponse> getAllUsers() {
@@ -41,6 +43,7 @@ public class AdminService {
         watchlistRepository.deleteByUser(user);
         userFollowRepository.deleteByFollower(user);
         userFollowRepository.deleteByFollowing(user);
+        watchedMovieRepository.deleteByUser(user);
         userRepository.delete(user);
     }
 
