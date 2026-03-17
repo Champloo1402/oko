@@ -23,6 +23,7 @@ public class AdminService {
     private final WatchlistRepository watchlistRepository;
     private final UserFollowRepository userFollowRepository;
     private final WatchedMovieRepository watchedMovieRepository;
+    private final MovieLikeRepository movieLikeRepository;
 
 
     @Transactional(readOnly = true)
@@ -44,6 +45,7 @@ public class AdminService {
         userFollowRepository.deleteByFollower(user);
         userFollowRepository.deleteByFollowing(user);
         watchedMovieRepository.deleteByUser(user);
+        movieLikeRepository.deleteByUser(user);
         userRepository.delete(user);
     }
 

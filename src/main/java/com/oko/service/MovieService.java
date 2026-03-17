@@ -3,12 +3,16 @@ package com.oko.service;
 import com.oko.dto.response.GenreResponse;
 import com.oko.dto.response.MovieResponse;
 import com.oko.entity.Movie;
+import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.external.tmdb.TmdbClient;
 import com.oko.external.tmdb.dto.TmdbMovieResponse;
+import com.oko.repository.MovieLikeRepository;
 import com.oko.repository.MovieRepository;
 import com.oko.repository.ReviewRepository;
+import com.oko.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +25,8 @@ public class MovieService {
     private final TmdbService tmdbService;
     private final TmdbClient tmdbClient;
     private final ReviewRepository reviewRepository;
+    private final MovieLikeRepository movieLikeRepository;
+    private final UserRepository userRepository;
 
 
     public List<TmdbMovieResponse> searchMovie(String query) {
@@ -63,6 +69,17 @@ public class MovieService {
 
         Double avg = reviewRepository.findAverageRatingByMovie(movie).orElse(null);
         movieResponse.setAverageRating(avg != null ? Math.round(avg * 10.0) / 10.0 : null);
+
+        movieResponse.setLikeCount(movieLikeRepository.countByMovie(movie));
+
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByUsername(username).orElse(null);
+            movieResponse.setLikedByCurrentUser(
+                    currentUser != null && movieLikeRepository.existsByUserAndMovie(currentUser, movie));
+        } catch (Exception e) {
+            movieResponse.setLikedByCurrentUser(false);
+        }
         return movieResponse;
     }
 
