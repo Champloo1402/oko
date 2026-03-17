@@ -4,15 +4,12 @@ import com.oko.dto.response.MovieResponse;
 import com.oko.dto.response.UserSummaryResponse;
 import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
-import com.oko.repository.MovieRepository;
-import com.oko.repository.UserRepository;
+import com.oko.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +18,10 @@ public class AdminService {
     private final MovieService movieService;
     private final UserRepository userRepository;
     private final MovieRepository movieRepository;
+    private final ReviewRepository reviewRepository;
+    private final DiaryEntryRepository diaryEntryRepository;
+    private final WatchlistRepository watchlistRepository;
+    private final UserFollowRepository userFollowRepository;
 
     @Transactional(readOnly = true)
     public List<UserSummaryResponse> getAllUsers() {
@@ -32,7 +33,15 @@ public class AdminService {
 
     @Transactional
     public void deleteUser(Long id) {
-        userRepository.delete(userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found")));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        reviewRepository.deleteByUser(user);
+        diaryEntryRepository.deleteByUser(user);
+        watchlistRepository.deleteByUser(user);
+        userFollowRepository.deleteByFollower(user);
+        userFollowRepository.deleteByFollowing(user);
+        userRepository.delete(user);
     }
 
     @Transactional

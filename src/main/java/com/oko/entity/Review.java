@@ -23,7 +23,7 @@ public class Review {
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
 
-    @Column(nullable = false)
+    @Column
     private Double rating;
 
     @Column(columnDefinition = "TEXT")

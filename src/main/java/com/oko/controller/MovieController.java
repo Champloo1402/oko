@@ -1,10 +1,10 @@
 package com.oko.controller;
 
 import com.oko.dto.response.MovieResponse;
-import com.oko.entity.Movie;
 import com.oko.external.tmdb.dto.TmdbMovieResponse;
 import com.oko.service.MovieService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,7 +28,8 @@ public class MovieController {
     }
 
     @PostMapping("/sync/{tmdbId}")
-    public MovieResponse getMovieByTmdbId(@PathVariable Long tmdbId) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovieResponse syncMovie(@PathVariable Long tmdbId) {
         return movieService.syncMovie(tmdbId);
 
     }

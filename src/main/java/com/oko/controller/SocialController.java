@@ -3,6 +3,7 @@ package com.oko.controller;
 import com.oko.dto.response.UserSummaryResponse;
 import com.oko.service.SocialService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,11 +15,13 @@ public class SocialController {
     private final SocialService socialService;
 
     @PostMapping("/follow/{username}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void followUser(@PathVariable String username){
         socialService.followUser(username);
     }
 
     @DeleteMapping("/unfollow/{username}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unfollowUser(@PathVariable String username){
         socialService.unfollowUser(username);
     }

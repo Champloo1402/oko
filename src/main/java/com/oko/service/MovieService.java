@@ -7,6 +7,7 @@ import com.oko.exception.ResourceNotFoundException;
 import com.oko.external.tmdb.TmdbClient;
 import com.oko.external.tmdb.dto.TmdbMovieResponse;
 import com.oko.repository.MovieRepository;
+import com.oko.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,8 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final TmdbService tmdbService;
     private final TmdbClient tmdbClient;
+    private final ReviewRepository reviewRepository;
+
 
     public List<TmdbMovieResponse> searchMovie(String query) {
         return tmdbClient.searchMovies(query);
@@ -57,6 +60,9 @@ public class MovieService {
                 })
                 .collect(Collectors.toList());
         movieResponse.setGenres(genres);
+
+        Double avg = reviewRepository.findAverageRatingByMovie(movie).orElse(null);
+        movieResponse.setAverageRating(avg != null ? Math.round(avg * 10.0) / 10.0 : null);
         return movieResponse;
     }
 

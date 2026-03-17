@@ -1,6 +1,7 @@
 package com.oko.service;
 
 import com.oko.dto.response.MovieResponse;
+import com.oko.dto.response.PageResponse;
 import com.oko.dto.response.WatchlistResponse;
 import com.oko.entity.Movie;
 import com.oko.entity.User;
@@ -9,6 +10,7 @@ import com.oko.exception.DuplicateResourceException;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.repository.WatchlistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +50,17 @@ public class WatchlistService {
     }
 
     @Transactional(readOnly = true)
-    public List<WatchlistResponse> getWatchlist(){
+    public PageResponse<WatchlistResponse> getWatchlist(Pageable pageable) {
         User user = userService.getCurrentUser();
-        List<WatchlistEntry> list = watchlistRepository.findByUser(user);
-        return list.stream().map(this::mapToWatchlistResponse).toList();
+        return PageResponse.of(watchlistRepository.findByUser(user, pageable)
+                .map(this::mapToWatchlistResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<WatchlistResponse> getWatchlistByUsername(String username, Pageable pageable) {
+        User user = userService.getUserByUsername(username);
+        return PageResponse.of(watchlistRepository.findByUser(user, pageable)
+                .map(this::mapToWatchlistResponse));
     }
 
     private WatchlistResponse mapToWatchlistResponse(WatchlistEntry entry){

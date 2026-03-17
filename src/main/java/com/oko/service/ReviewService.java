@@ -1,6 +1,7 @@
 package com.oko.service;
 
 import com.oko.dto.request.ReviewRequest;
+import com.oko.dto.response.PageResponse;
 import com.oko.dto.response.ReviewResponse;
 import com.oko.entity.Movie;
 import com.oko.entity.Review;
@@ -11,10 +12,10 @@ import com.oko.exception.UnauthorizedException;
 import com.oko.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -74,19 +75,17 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReviewResponse> getMovieReviews(Long movieId) {
+    public PageResponse<ReviewResponse> getMovieReviews(Long movieId, Pageable pageable) {
         Movie movie = movieService.getMovieEntityById(movieId);
-        List<Review> reviews = reviewRepository.findByMovie(movie);
-
-        return reviews.stream().map(this::mapToReviewResponse).toList();
+        return PageResponse.of(reviewRepository.findByMovie(movie, pageable)
+                .map(this::mapToReviewResponse));
     }
 
     @Transactional(readOnly = true)
-    public List<ReviewResponse> getUserReviews(String username) {
+    public PageResponse<ReviewResponse> getUserReviews(String username, Pageable pageable) {
         User user = userService.getUserByUsername(username);
-        List<Review> reviews = reviewRepository.findByUser(user);
-
-        return reviews.stream().map(this::mapToReviewResponse).toList();
+        return PageResponse.of(reviewRepository.findByUser(user, pageable)
+                .map(this::mapToReviewResponse));
     }
 
     private ReviewResponse mapToReviewResponse(Review review){

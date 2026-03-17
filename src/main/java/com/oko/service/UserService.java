@@ -43,7 +43,8 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        User currentUser = getCurrentUser();
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(currentUsername).orElse(null);
 
         UserProfileResponse response = new UserProfileResponse();
         response.setId(user.getId());
@@ -52,21 +53,21 @@ public class UserService {
         response.setAvatarUrl(user.getAvatarUrl());
         response.setBio(user.getBio());
 
-        List<MovieResponse> favFilms = Stream.of(user.getFavoriteFilm1(),
-                        user.getFavoriteFilm2(), user.getFavoriteFilm3(),
-                        user.getFavoriteFilm4(), user.getFavoriteFilm5())
+        List<MovieResponse> favFilms = Stream.of(
+                        user.getFavoriteFilm1(), user.getFavoriteFilm2(),
+                        user.getFavoriteFilm3(), user.getFavoriteFilm4(),
+                        user.getFavoriteFilm5())
                 .filter(Objects::nonNull)
-                .map(movieService::mapToMovieResponse).toList();
-
+                .map(movieService::mapToMovieResponse)
+                .toList();
         response.setFavFilms(favFilms);
 
-        Integer followerCount = userFollowRepository.findByFollowing(user).size();
-        Integer followingCount = userFollowRepository.findByFollower(user).size();
+        response.setFollowerCount(userFollowRepository.findByFollowing(user).size());
+        response.setFollowingCount(userFollowRepository.findByFollower(user).size());
 
-        response.setFollowerCount(followerCount);
-        response.setFollowingCount(followingCount);
-
-        response.setFollowedByCurrentUser(userFollowRepository.existsByFollowerAndFollowing(currentUser, user));
+        boolean isFollowed = currentUser != null &&
+                userFollowRepository.existsByFollowerAndFollowing(currentUser, user);
+        response.setFollowedByCurrentUser(isFollowed);
 
         return response;
     }

@@ -2,6 +2,7 @@ package com.oko.service;
 
 import com.oko.dto.request.DiaryEntryRequest;
 import com.oko.dto.response.DiaryEntryResponse;
+import com.oko.dto.response.PageResponse;
 import com.oko.entity.DiaryEntry;
 import com.oko.entity.Movie;
 import com.oko.entity.User;
@@ -9,6 +10,7 @@ import com.oko.exception.ResourceNotFoundException;
 import com.oko.exception.UnauthorizedException;
 import com.oko.repository.DiaryEntryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,11 +52,10 @@ public class DiaryService {
     }
 
     @Transactional(readOnly = true)
-    public List<DiaryEntryResponse> getDiary(String username) {
+    public PageResponse<DiaryEntryResponse> getDiary(String username, Pageable pageable) {
         User user = userService.getUserByUsername(username);
-        List<DiaryEntry> entries = diaryEntryRepository.findByUserOrderByWatchedOnDesc(user);
-
-        return entries.stream().map(this::mapDiaryEntryToResponse).toList();
+        return PageResponse.of(diaryEntryRepository.findByUserOrderByWatchedOnDesc(user, pageable)
+                .map(this::mapDiaryEntryToResponse));
     }
 
     private DiaryEntryResponse mapDiaryEntryToResponse(DiaryEntry entry) {

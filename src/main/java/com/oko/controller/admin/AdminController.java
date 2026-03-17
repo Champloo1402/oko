@@ -4,6 +4,7 @@ import com.oko.dto.response.MovieResponse;
 import com.oko.dto.response.UserSummaryResponse;
 import com.oko.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId){
         adminService.deleteUser(userId);
     }
@@ -35,6 +37,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/movies/{movieId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMovie(@PathVariable Long movieId){
         adminService.deleteMovie(movieId);
     }

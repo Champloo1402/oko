@@ -38,7 +38,9 @@ public class TmdbService {
         movie.setTitle(response.getTitle());
         movie.setOriginalTitle(response.getOriginalTitle());
         movie.setOverview(response.getOverview());
-        movie.setReleaseYear(Integer.parseInt(response.getReleaseDate().substring(0, 4)));
+        if (response.getReleaseDate() != null && !response.getReleaseDate().isBlank()) {
+            movie.setReleaseYear(Integer.parseInt(response.getReleaseDate().substring(0, 4)));
+        }
         movie.setRuntimeMinutes(response.getRuntime());
         movie.setPosterUrl("https://image.tmdb.org/t/p/w500" + response.getPosterPath());
         movie.setBackdropUrl("https://image.tmdb.org/t/p/w500" + response.getBackdropPath());

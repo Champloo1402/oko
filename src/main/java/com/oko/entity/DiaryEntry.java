@@ -26,7 +26,7 @@ public class DiaryEntry {
     @Column(name = "watched_on", nullable = false)
     private LocalDate watchedOn;
 
-    @Column(nullable = false)
+    @Column
     private Double rating;
 
     private boolean rewatch = false;

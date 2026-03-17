@@ -28,4 +28,6 @@ public class MovieResponse {
 
     private List<GenreResponse> genres;
 
+    private Double averageRating;
+
 }
