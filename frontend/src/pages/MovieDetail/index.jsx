@@ -246,8 +246,10 @@ export default function MovieDetail() {
 
   const {
     title, releaseYear, runtimeMinutes, language, genres,
-    overview, posterUrl, backdropUrl, averageRating,
+    overview, posterUrl, averageRating,
   } = movie;
+
+  const backdropUrl = movie.backdropUrl?.replace('/w500/', '/w1280/');
 
   const runtime = runtimeMinutes
       ? `${Math.floor(runtimeMinutes / 60)}h ${runtimeMinutes % 60}m`

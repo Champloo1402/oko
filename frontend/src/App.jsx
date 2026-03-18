@@ -14,6 +14,7 @@ import EditProfile from './pages/EditProfile';
 import Admin       from './pages/Admin';
 import Members     from './pages/Members';
 import PersonDetail from './pages/PersonDetail';
+import OAuth2Callback from './pages/OAuth2Callback';
 import { DiaryPage, WatchlistPage, ListDetail } from './pages/Lists';
 
 // ─── Route guards ────────────────────────────────────────────────────────────
@@ -46,6 +47,9 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+
+            {/* OAuth2 callback — public, no nav wrapper */}
+            <Route path="/oauth2/callback" element={<OAuth2Callback />} />
 
             {/* Public — landing / auth */}
             <Route path="/" element={

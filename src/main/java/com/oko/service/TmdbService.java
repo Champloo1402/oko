@@ -41,7 +41,7 @@ public class TmdbService {
         }
         movie.setRuntimeMinutes(response.getRuntime());
         movie.setPosterUrl("https://image.tmdb.org/t/p/w500" + response.getPosterPath());
-        movie.setBackdropUrl("https://image.tmdb.org/t/p/w500" + response.getBackdropPath());
+        movie.setBackdropUrl("https://image.tmdb.org/t/p/w1280" + response.getBackdropPath());
         movie.setLanguage(response.getOriginalLanguage());
         Set<Genre> genres = response.getGenres().stream()
                 .map(this::findOrCreateGenre)
