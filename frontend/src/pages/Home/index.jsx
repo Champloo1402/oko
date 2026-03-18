@@ -99,9 +99,43 @@ export default function Home() {
             </SidebarSection>
 
             <SidebarSection title="Recent films">
-              <p className="text-xs text-oko-subtle">
-                Films your friends are watching will appear here.
-              </p>
+              {(() => {
+                // Deduplicate feed items by movie id, take up to 8 most recent
+                const seen = new Set();
+                const recentMovies = items
+                    .filter((item) => item.movie?.id && item.movie?.posterUrl)
+                    .filter((item) => {
+                      if (seen.has(item.movie.id)) return false;
+                      seen.add(item.movie.id);
+                      return true;
+                    })
+                    .slice(0, 8);
+
+                if (recentMovies.length === 0) return (
+                    <p className="text-xs text-oko-subtle">
+                      Films your friends are watching will appear here.
+                    </p>
+                );
+
+                return (
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {recentMovies.map((item) => (
+                          <Link
+                              key={item.movie.id}
+                              to={`/movies/${item.movie.id}`}
+                              className="group block aspect-[2/3] rounded overflow-hidden border border-oko-border hover:border-oko-red transition-colors"
+                          >
+                            <img
+                                src={item.movie.posterUrl}
+                                alt={item.movie.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                            />
+                          </Link>
+                      ))}
+                    </div>
+                );
+              })()}
             </SidebarSection>
 
             <SidebarSection title="Browse genres">
