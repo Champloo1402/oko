@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38">
+    <!-- Outer ring -->
+    <circle cx="19" cy="19" r="16" fill="none" stroke="#e84040" stroke-width="3.2"/>
+    <!-- Eye fill -->
+    <circle cx="19" cy="19" r="12" fill="#1a0505"/>
+    <!-- Iris -->
+    <circle cx="19" cy="19" r="7.5" fill="#c42a2a"/>
+    <!-- Iris detail -->
+    <circle cx="19" cy="19" r="5.5" fill="none" stroke="#e84040" stroke-width="0.8" opacity="0.45"/>
+    <!-- Pupil -->
+    <circle cx="19" cy="19" r="3.2" fill="#080101"/>
+    <!-- Shine -->
+    <circle cx="21" cy="17" r="1.5" fill="#e5e7eb" opacity="0.75"/>
+</svg>
