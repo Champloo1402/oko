@@ -118,12 +118,14 @@ public class TmdbService {
     private Person findOrCreatePerson(TmdbCastResponse tmdbPerson) {
         return personRepository.findByTmdbId(tmdbPerson.getId())
                 .orElseGet(() -> {
+                    TmdbCastResponse fullDetails = tmdbClient.getPersonById(tmdbPerson.getId());
                     Person person = new Person();
                     person.setTmdbId(tmdbPerson.getId());
                     person.setName(tmdbPerson.getName());
                     if (tmdbPerson.getProfilePath() != null) {
                         person.setPhotoUrl("https://image.tmdb.org/t/p/w500" + tmdbPerson.getProfilePath());
                     }
+                    person.setBiography(fullDetails.getBiography());
                     return personRepository.save(person);
                 });
     }

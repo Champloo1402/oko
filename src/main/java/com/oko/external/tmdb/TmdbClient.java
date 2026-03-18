@@ -1,9 +1,6 @@
 package com.oko.external.tmdb;
 
-import com.oko.external.tmdb.dto.TmdbCreditsResponse;
-import com.oko.external.tmdb.dto.TmdbMovieDetailResponse;
-import com.oko.external.tmdb.dto.TmdbMovieResponse;
-import com.oko.external.tmdb.dto.TmdbSearchResponse;
+import com.oko.external.tmdb.dto.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -63,5 +60,13 @@ public class TmdbClient {
                 .bodyToMono(TmdbSearchResponse.class)
                 .block()
                 .getResults();
+    }
+
+    public TmdbCastResponse getPersonById(Long tmdbId) {
+        return webClient.get()
+                .uri("/person/{id}", tmdbId)
+                .retrieve()
+                .bodyToMono(TmdbCastResponse.class)
+                .block();
     }
 }
