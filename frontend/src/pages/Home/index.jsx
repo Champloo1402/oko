@@ -140,13 +140,22 @@ export default function Home() {
 
             <SidebarSection title="Browse genres">
               <div className="flex flex-wrap gap-2">
-                {['Horror', 'Sci-Fi', 'Drama', 'Thriller', 'Comedy', 'Animation', 'Documentary', 'Romance'].map((g) => (
+                {[
+                  { label: 'Horror',      value: 'Horror' },
+                  { label: 'Sci-Fi',      value: 'Science Fiction' },
+                  { label: 'Drama',       value: 'Drama' },
+                  { label: 'Thriller',    value: 'Thriller' },
+                  { label: 'Comedy',      value: 'Comedy' },
+                  { label: 'Animation',   value: 'Animation' },
+                  { label: 'Documentary', value: 'Documentary' },
+                  { label: 'Romance',     value: 'Romance' },
+                ].map((g) => (
                     <Link
-                        key={g}
-                        to={`/search?genre=${g}`}
+                        key={g.value}
+                        to={`/search?genre=${encodeURIComponent(g.value)}`}
                         className="text-xs text-oko-muted border border-oko-border rounded-full px-3 py-1 hover:border-oko-red hover:text-oko-red transition-colors"
                     >
-                      {g}
+                      {g.label}
                     </Link>
                 ))}
               </div>

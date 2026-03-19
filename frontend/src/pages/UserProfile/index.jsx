@@ -50,14 +50,14 @@ export default function UserProfile() {
   const [listError,      setListError]      = useState('');
 
   useEffect(() => {
+    setFollowing(false);
     const load = async () => {
       setLoading(true);
       try {
         const [pRes, sRes] = await Promise.all([getUserProfile(username), getUserStats(username)]);
         setProfile(pRes.data);
         setStats(sRes.data);
-        setFollowing(pRes.data.isFollowedByCurrentUser);
-        // Populate fav films — always 5 slots, null for missing
+        setFollowing(!!pRes.data.followedByCurrentUser);
         const fav = pRes.data.favFilms ?? [];
         setFavFilms([
           fav[0] ?? null, fav[1] ?? null, fav[2] ?? null,
@@ -87,15 +87,24 @@ export default function UserProfile() {
   }, [tab, username, profile]); // eslint-disable-line
 
   const toggleFollow = async () => {
+    // Optimistic update — flip immediately, revert if API fails
+    const wasFollowing = following;
+    setFollowing(!wasFollowing);
+    setProfile((p) => ({
+      ...p,
+      followerCount: p.followerCount + (wasFollowing ? -1 : 1),
+    }));
     try {
-      if (following) await unfollowUser(username);
-      else           await followUser(username);
-      setFollowing((v) => !v);
+      if (wasFollowing) await unfollowUser(username);
+      else              await followUser(username);
+    } catch {
+      // Revert on failure
+      setFollowing(wasFollowing);
       setProfile((p) => ({
         ...p,
-        followerCount: p.followerCount + (following ? -1 : 1),
+        followerCount: p.followerCount + (wasFollowing ? 1 : -1),
       }));
-    } catch {}
+    }
   };
 
   // Fav film picker handlers (owner only)
@@ -243,7 +252,7 @@ export default function UserProfile() {
           {/* Avatar */}
           <div className="flex-shrink-0">
             {avatarUrl ? (
-                <img src={avatarUrl} alt={displayName} className="w-20 h-20 rounded-full object-cover border-2 border-oko-border" />
+                <img src={avatarUrl} alt={displayName} className="w-20 h-20 rounded-full object-cover border-2 border-oko-border" style={{ width: '5rem', height: '5rem' }} />
             ) : (
                 <div className="w-20 h-20 rounded-full bg-oko-red-dark flex items-center justify-center text-white text-2xl font-bold uppercase border-2 border-oko-border">
                   {username[0]}
@@ -700,6 +709,7 @@ function SocialUserCard({ user, isSelf, isLoggedIn, isFollowing, isPending, onTo
                   src={avatarUrl}
                   alt={displayName || username}
                   className="w-9 h-9 rounded-full object-cover border border-oko-border hover:border-oko-red transition-colors"
+                  style={{ width: '2.25rem', height: '2.25rem' }}
               />
           ) : (
               <div className="w-9 h-9 rounded-full bg-oko-red-dark flex items-center justify-center text-white text-sm font-bold uppercase">

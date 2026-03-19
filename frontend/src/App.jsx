@@ -50,11 +50,12 @@ export default function App() {
 
             {/* OAuth2 callback — public, no nav wrapper */}
             <Route path="/oauth2/callback" element={<OAuth2Callback />} />
+            <Route path="/auth/error"      element={<OAuth2Callback />} />
 
             {/* Public — landing / auth */}
             <Route path="/" element={
               <PublicOnly>
-                <Layout showNav={false}><Landing /></Layout>
+                <Layout showNav={true}><Landing /></Layout>
               </PublicOnly>
             } />
             <Route path="/register" element={

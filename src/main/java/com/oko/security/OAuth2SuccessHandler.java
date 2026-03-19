@@ -36,10 +36,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     newUser.setEmail(email);
                     newUser.setUsername(generateUsername(email));
                     newUser.setDisplayName(name);
-                    newUser.setAvatarUrl(picture);
                     newUser.setPassword("GOOGLE_AUTH_" + email);
-                    return userRepository.save(newUser);
+                    return newUser;
                 });
+
+        user.setAvatarUrl(picture);
+        if (user.getDisplayName() == null) {
+            user.setDisplayName(name);
+        }
+
+        userRepository.save(user);
 
         String token = jwtTokenProvider.generateToken(user);
 
