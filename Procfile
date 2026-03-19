@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT -DSPRING_PROFILES_ACTIVE=prod -jar target/oko-0.0.1-SNAPSHOT.jar

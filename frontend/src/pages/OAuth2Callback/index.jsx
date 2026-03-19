@@ -57,7 +57,7 @@ export default function OAuth2Callback() {
                     <p className="text-oko-muted text-sm mb-5">{error}</p>
                     <div className="flex flex-col gap-2">
                         <a
-                            href="http://localhost:8080/oauth2/authorization/google"
+                            href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`}
                             className="w-full flex items-center justify-center gap-2 bg-oko-red hover:bg-oko-red-dark text-white font-semibold py-2.5 rounded-md text-sm transition-colors"
                         >
                             Try again with Google

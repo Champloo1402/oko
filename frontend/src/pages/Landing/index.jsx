@@ -117,7 +117,7 @@ export default function Landing() {
                         <div className="px-6 py-5 space-y-3">
                             {/* Google — primary option */}
                             <a
-                                href="http://localhost:8080/oauth2/authorization/google"
+                                href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`}
                                 className="flex items-center justify-center gap-2.5 w-full bg-oko-bg hover:bg-white/5 text-oko-text border border-oko-border hover:border-oko-muted px-5 py-2.5 rounded-md text-sm font-medium transition-colors"
                             >
                                 <svg width="18" height="18" viewBox="0 0 18 18">

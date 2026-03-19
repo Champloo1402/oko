@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // ─── Axios instance ────────────────────────────────────────────────────────
-const api = axios.create({ baseURL: 'http://localhost:8080' });
+const api = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080' });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -56,8 +56,8 @@ export const getWatchedStatus = (movieId) => api.get(`/api/watched/${movieId}/st
 export const getWatchedCount  = (username)=> api.get(`/api/watched/count/${username}`);
 
 // ─── Social ───────────────────────────────────────────────────────────────
-export const followUser    = (username) => api.post(`/api/social/follow/${username}`);
-export const unfollowUser  = (username) => api.delete(`/api/social/unfollow/${username}`);
+export const followUser    = (username) => api.post(`/api/users/${username}/follow`);
+export const unfollowUser  = (username) => api.delete(`/api/users/${username}/follow`);
 export const getFollowers  = (username) => api.get(`/api/social/followers/${username}`);
 export const getFollowing  = (username) => api.get(`/api/social/following/${username}`);
 
