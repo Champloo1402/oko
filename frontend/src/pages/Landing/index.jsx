@@ -3,20 +3,20 @@ import { Link } from 'react-router-dom';
 import { getPopularMovies } from '../../api';
 import MovieCard from '../../components/MovieCard';
 
-// Normalize TMDB popular shape → what MovieCard expects
-// Confirmed field names from API: poster_path, release_date, id (tmdbId)
+// FIX: explicitly set tmdbId so MovieCard knows this is a TMDB-sourced record
+// and must sync — never set localId here since we don't have it yet.
 const normalizeTmdb = (m) => ({
     id:            m.id,
-    tmdbId:        m.id,
+    tmdbId:        m.id,   // explicit — tells MovieCard to sync via this id
     title:         m.title,
     releaseYear:   m.release_date ? m.release_date.slice(0, 4) : '',
     posterUrl:     m.poster_path
         ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
         : null,
     averageRating: m.averageRating ?? 0,
+    // localId intentionally omitted — will be resolved on first click
 });
 
-// Build full TMDB image URL from a raw path value
 const tmdbImg = (path, size = 'original') =>
     path ? `https://image.tmdb.org/t/p/${size}${path}` : null;
 
@@ -48,7 +48,6 @@ export default function Landing() {
             {/* ── Hero ─────────────────────────────────────────────────────────── */}
             <div className="relative h-[520px] overflow-hidden">
 
-                {/* Full-width backdrop — image fills the entire hero */}
                 {featuredUrl && (
                     <img
                         src={featuredUrl}
@@ -58,19 +57,15 @@ export default function Landing() {
                     />
                 )}
 
-                {/* Left fade — dark bleeds in from the left edge */}
                 <div className="absolute inset-y-0 left-0 w-[35%] z-[2]"
                      style={{ background: 'linear-gradient(to right, #14181c 0%, #14181c 5%, rgba(20,24,28,0.7) 50%, transparent 100%)' }}
                 />
-                {/* Right fade */}
                 <div className="absolute inset-y-0 right-0 w-[35%] z-[2]"
                      style={{ background: 'linear-gradient(to left, #14181c 0%, #14181c 5%, rgba(20,24,28,0.7) 50%, transparent 100%)' }}
                 />
-                {/* Bottom fade — smoothly dissolves into page bg, no hard line */}
                 <div className="absolute bottom-0 left-0 right-0 z-[2]"
                      style={{ height: '55%', background: 'linear-gradient(to top, #14181c 0%, rgba(20,24,28,0.9) 30%, rgba(20,24,28,0.5) 65%, transparent 100%)' }}
                 />
-                {/* Top fade — softens the very top edge */}
                 <div className="absolute top-0 left-0 right-0 h-24 z-[2]"
                      style={{ background: 'linear-gradient(to bottom, #14181c 0%, rgba(20,24,28,0.6) 50%, transparent 100%)' }}
                 />
@@ -78,13 +73,12 @@ export default function Landing() {
                 {featuredTitle && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10"
                          style={{ writingMode: 'vertical-rl', transform: 'translateY(-50%) rotate(180deg)' }}>
-            <span className="text-[10px] text-white/20 tracking-widest uppercase">
-              {featuredTitle}{featuredYear ? ` (${featuredYear})` : ''}
-            </span>
+                        <span className="text-[10px] text-white/20 tracking-widest uppercase">
+                            {featuredTitle}{featuredYear ? ` (${featuredYear})` : ''}
+                        </span>
                     </div>
                 )}
 
-                {/* Hero text — clean, no form cluttering the image */}
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-end pb-16 px-4">
                     <h1 className="text-3xl md:text-4xl font-bold text-white text-center leading-snug mb-8 drop-shadow-xl">
                         Track films you've watched.<br />
@@ -108,14 +102,12 @@ export default function Landing() {
                     onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
                 >
                     <div className="w-full max-w-sm bg-oko-surface border border-oko-border rounded-xl shadow-2xl animate-slide-up">
-                        {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-6 pb-0">
                             <h2 className="text-base font-bold text-oko-text">Create your account</h2>
                             <button onClick={() => setShowModal(false)} className="text-oko-subtle hover:text-oko-text text-2xl leading-none">×</button>
                         </div>
 
                         <div className="px-6 py-5 space-y-3">
-                            {/* Google — primary option */}
                             <a
                                 href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`}
                                 className="flex items-center justify-center gap-2.5 w-full bg-oko-bg hover:bg-white/5 text-oko-text border border-oko-border hover:border-oko-muted px-5 py-2.5 rounded-md text-sm font-medium transition-colors"
@@ -129,14 +121,12 @@ export default function Landing() {
                                 Continue with Google
                             </a>
 
-                            {/* Divider */}
                             <div className="flex items-center gap-3">
                                 <div className="flex-1 h-px bg-oko-border" />
                                 <span className="text-oko-faint text-xs">or</span>
                                 <div className="flex-1 h-px bg-oko-border" />
                             </div>
 
-                            {/* Create account with email link */}
                             <Link
                                 to="/register"
                                 onClick={() => setShowModal(false)}
@@ -173,7 +163,6 @@ export default function Landing() {
                         ))}
                     </div>
                 ) : (
-                    /* Placeholder skeleton while backend loads */
                     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                         {Array.from({ length: 10 }).map((_, i) => (
                             <div key={i} className="aspect-[2/3] bg-oko-surface rounded-md animate-pulse border border-oko-border" />

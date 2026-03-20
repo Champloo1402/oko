@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import {
   getMovie, getMovieCast, getMovieReviews,
   likeMovie, unlikeMovie,
   markWatched, unmarkWatched, getWatchedStatus,
   addToWatchlist, removeFromWatchlist, getMyWatchlist,
   createDiaryEntry, createReview, deleteReview,
-  getUserLists, addMovieToList,
+  getUserLists, addMovieToList, syncMovie,
 } from '../../api';
 import { StarDisplay, StarInput } from '../../components/StarRating';
 import ReviewCard from '../../components/ReviewCard';
@@ -20,8 +20,11 @@ import {
 } from '@heroicons/react/24/solid';
 
 export default function MovieDetail() {
-  const { id }   = useParams();
-  const { user } = useAuth();
+  const { id }       = useParams();
+  const location     = useLocation();
+  const { user }     = useAuth();
+  // tmdbId passed via navigation state so we can sync on 404
+  const tmdbIdFromState = location.state?.tmdbId;
 
   const [movie,    setMovie]    = useState(null);
   const [cast,     setCast]     = useState([]);
@@ -63,32 +66,47 @@ export default function MovieDetail() {
   const [diaryNote,     setDiaryNote]     = useState('');
   const [diaryRewatch,  setDiaryRewatch]  = useState(false);
 
-  // id in the URL is always a local DB id — Search and Landing both sync before navigating.
-  // We use it directly for all API calls.
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError('');
-      try {
-        const localId = id;
-        const [mRes, cRes] = await Promise.all([getMovie(localId), getMovieCast(localId)]);
-        setMovie({ ...mRes.data, localId });
-        setLiked(mRes.data.likedByCurrentUser ?? false);
+      let localId = id;
+
+      const tryLoad = async (lid) => {
+        const [mRes, cRes] = await Promise.all([getMovie(lid), getMovieCast(lid)]);
+        setMovie({ ...mRes.data, localId: lid });
+        setLiked(mRes.data.likedByCurrentUser ?? mRes.data.followedByCurrentUser ?? false);
         setLikeCount(mRes.data.likeCount ?? 0);
         setCast(cRes.data ?? []);
-        loadReviews(localId, 0);
-
+        loadReviews(lid, 0);
         if (user) {
           const [wRes, wlRes] = await Promise.all([
-            getWatchedStatus(localId),
+            getWatchedStatus(lid),
             getMyWatchlist(0, 100),
           ]);
           setWatched(wRes.data);
           const wlItems = wlRes.data?.content ?? wlRes.data ?? [];
-          setInWatchlist(wlItems.some((w) => (w.movie?.id ?? w.movieId) === Number(localId)));
+          setInWatchlist(wlItems.some((w) => (w.movie?.id ?? w.movieId) === Number(lid)));
         }
-      } catch {
-        setError('Could not load film. Make sure the backend is running.');
+      };
+
+      try {
+        await tryLoad(localId);
+      } catch (err) {
+        console.error('MovieDetail first load failed:', err?.response?.status, err?.message, 'tmdbIdFromState:', tmdbIdFromState);
+        // On 404, try syncing via tmdbId then retry
+        if (err?.response?.status === 404 && tmdbIdFromState) {
+          try {
+            const { data: synced } = await syncMovie(tmdbIdFromState);
+            localId = synced.id;
+            await tryLoad(localId);
+          } catch (err2) {
+            console.error('MovieDetail retry after sync failed:', err2?.response?.status, err2?.message);
+            setError('Could not load this film. Please try again.');
+          }
+        } else {
+          setError('Could not load film. Make sure the backend is running.');
+        }
       } finally {
         setLoading(false);
       }

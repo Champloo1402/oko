@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getDiary, deleteDiaryEntry, getUserWatchlist, getList, deleteList } from '../../api';
 import { StarDisplay } from '../../components/StarRating';
 import { OkoSpinner } from '../../components/Logo';
+import MovieCard from '../../components/MovieCard';
 
 // ─── Diary Page ───────────────────────────────────────────────────────────────
 export function DiaryPage() {
@@ -106,7 +107,14 @@ export function WatchlistPage() {
 
   useEffect(() => {
     getUserWatchlist(username)
-        .then(({ data }) => setMovies((data.content ?? data).map((w) => w.movie).filter(Boolean)))
+        .then(({ data }) => {
+          const items = data.content ?? data ?? [];
+          // Handle both { movie: {...} } and direct movie objects
+          const movies = items
+              .map((w) => w.movie ?? w)
+              .filter((m) => m && m.id);
+          setMovies(movies);
+        })
         .catch(() => {})
         .finally(() => setLoading(false));
   }, [username]);

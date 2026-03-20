@@ -5,23 +5,33 @@ import { syncMovie } from '../../api';
 import { OkoSpinner } from '../Logo';
 
 export default function MovieCard({ movie, className = '' }) {
-  const navigate   = useNavigate();
+  const navigate  = useNavigate();
   const [syncing, setSyncing] = useState(false);
 
   if (!movie) return null;
 
   const { title, releaseYear, posterUrl, averageRating } = movie;
 
-  // movie.localId  → already a local DB record, navigate directly
-  // otherwise      → movie.tmdbId or movie.id is the TMDB id, must sync first
   const handleClick = async () => {
     if (syncing) return;
 
+    // FIX: prefer localId (pre-resolved), then fall back to id if it's a local
+    // DB record (has posterUrl, no tmdbId set separately), otherwise sync.
     if (movie.localId) {
       navigate(`/movies/${movie.localId}`);
       return;
     }
 
+    // If the movie object came from the local DB directly (e.g. watchlist,
+    // diary, feed) it will have `id` as the local DB id and no `poster_path`.
+    // Only TMDB-sourced objects have `poster_path` (raw) or both id==tmdbId.
+    const isLocalRecord = !movie.poster_path && !movie.tmdbId && movie.id;
+    if (isLocalRecord) {
+      navigate(`/movies/${movie.id}`);
+      return;
+    }
+
+    // TMDB-sourced — must sync to get a local DB id
     const tmdbId = movie.tmdbId ?? movie.id;
     setSyncing(true);
     try {
@@ -39,7 +49,6 @@ export default function MovieCard({ movie, className = '' }) {
           onClick={handleClick}
           className={`group block rounded-md overflow-hidden border border-oko-border hover:border-oko-red transition-all duration-200 hover:-translate-y-0.5 cursor-pointer relative ${className}`}
       >
-        {/* Syncing overlay */}
         {syncing && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 rounded-md">
               <OkoSpinner size={28} />

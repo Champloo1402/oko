@@ -69,4 +69,12 @@ public class TmdbClient {
                 .bodyToMono(TmdbCastResponse.class)
                 .block();
     }
+
+    public TmdbPersonMovieCreditsResponse getPersonMovieCredits(Long tmdbPersonId) {
+        return webClient.get()
+                .uri("/person/{id}/movie_credits", tmdbPersonId)
+                .retrieve()
+                .bodyToMono(TmdbPersonMovieCreditsResponse.class)
+                .block();
+    }
 }

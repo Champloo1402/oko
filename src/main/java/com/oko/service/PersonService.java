@@ -5,6 +5,8 @@ import com.oko.dto.response.PersonResponse;
 import com.oko.entity.MovieCast;
 import com.oko.entity.Person;
 import com.oko.exception.ResourceNotFoundException;
+import com.oko.external.tmdb.TmdbClient;
+import com.oko.external.tmdb.dto.TmdbPersonMovieCreditsResponse;
 import com.oko.repository.MovieCastRepository;
 import com.oko.repository.MovieRepository;
 import com.oko.repository.PersonRepository;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.oko.entity.Movie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,6 +26,7 @@ public class PersonService {
     private final MovieCastRepository movieCastRepository;
     private final MovieRepository movieRepository;
     private final MovieService movieService;
+    private final TmdbClient tmdbClient;
 
     @Transactional(readOnly = true)
     public PersonResponse getPersonById(Long id) {
@@ -58,6 +62,20 @@ public class PersonService {
         response.setPhotoUrl(person.getPhotoUrl());
         response.setBiography(person.getBiography());
         return response;
+    }
+
+    public TmdbPersonMovieCreditsResponse getTmdbFilmography(Long personId) {
+        Person person = personRepository.findById(personId)
+                .orElseThrow(() -> new ResourceNotFoundException("Person not found"));
+
+        if (person.getTmdbId() == null) {
+            TmdbPersonMovieCreditsResponse empty = new TmdbPersonMovieCreditsResponse();
+            empty.setCast(new ArrayList<>());
+            empty.setCrew(new ArrayList<>());
+            return empty;
+        }
+
+        return tmdbClient.getPersonMovieCredits(person.getTmdbId());
     }
 
     private MovieCastResponse mapToCastResponse(MovieCast cast) {

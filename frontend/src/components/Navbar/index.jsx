@@ -77,7 +77,13 @@ export default function Navbar() {
             {user ? (
                 <div className="relative">
                   <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-2 text-sm text-oko-muted hover:text-oko-text transition-colors">
-                    <div className="w-7 h-7 rounded-full bg-oko-red-dark flex items-center justify-center text-white text-xs font-semibold uppercase">{user.username[0]}</div>
+                    {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.username}
+                             className="w-7 h-7 rounded-full object-cover border border-oko-border"
+                             style={{ width: '1.75rem', height: '1.75rem' }} />
+                    ) : (
+                        <div className="w-7 h-7 rounded-full bg-oko-red-dark flex items-center justify-center text-white text-xs font-semibold uppercase">{user.username[0]}</div>
+                    )}
                     <span className="hidden sm:inline">{user.username}</span>
                   </button>
                   {menuOpen && (
