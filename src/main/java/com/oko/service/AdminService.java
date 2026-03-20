@@ -2,6 +2,7 @@ package com.oko.service;
 
 import com.oko.dto.response.MovieResponse;
 import com.oko.dto.response.UserSummaryResponse;
+import com.oko.entity.Movie;
 import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.repository.*;
@@ -25,6 +26,7 @@ public class AdminService {
     private final WatchedMovieRepository watchedMovieRepository;
     private final MovieLikeRepository movieLikeRepository;
     private final MovieListRepository movieListRepository;
+    private final MovieCastRepository movieCastRepository;
 
 
     @Transactional(readOnly = true)
@@ -68,8 +70,18 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteMovie(Long id){
-        movieRepository.deleteById(id);
+    public void deleteMovie(Long id) {
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
+
+        reviewRepository.deleteByMovie(movie);
+        diaryEntryRepository.deleteByMovie(movie);
+        watchlistRepository.deleteByMovie(movie);
+        watchedMovieRepository.deleteByMovie(movie);
+        movieLikeRepository.deleteByMovie(movie);
+        movieCastRepository.deleteByMovie(movie);
+
+        movieRepository.delete(movie);
     }
 
 }

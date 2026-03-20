@@ -10,4 +10,6 @@ import java.util.List;
 public interface MovieCastRepository extends JpaRepository<MovieCast, Long> {
     List<MovieCast> findByMovie(Movie movie);
     List<MovieCast> findByPerson(Person person);
+
+    void deleteByMovie(Movie movie);
 }

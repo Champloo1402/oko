@@ -15,4 +15,6 @@ public interface WatchlistRepository extends JpaRepository<WatchlistEntry, Long>
     Optional<WatchlistEntry> findByUserAndMovie(User user, Movie movie);
     boolean existsByUserAndMovie(User user, Movie movie);
     void deleteByUser(User user);
+
+    void deleteByMovie(Movie movie);
 }

@@ -1,6 +1,7 @@
 package com.oko.repository;
 
 import com.oko.entity.DiaryEntry;
+import com.oko.entity.Movie;
 import com.oko.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,4 +15,5 @@ public interface DiaryEntryRepository extends JpaRepository<DiaryEntry, Long> {
     List<DiaryEntry> findByUserInOrderByWatchedOnDesc(List<User> users);
     int countByUser(User user);
 
+    void deleteByMovie(Movie movie);
 }

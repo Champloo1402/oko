@@ -21,4 +21,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     void deleteByUser(User user);
     List<Review> findByUserInOrderByCreatedAtDesc(List<User> users);
     int countByUser(User user);
+
+    void deleteByMovie(Movie movie);
 }

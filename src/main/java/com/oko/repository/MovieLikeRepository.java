@@ -10,4 +10,6 @@ public interface MovieLikeRepository extends JpaRepository<MovieLike, Long> {
     void deleteByUserAndMovie(User user, Movie movie);
     int countByMovie(Movie movie);
     void deleteByUser(User user);
+
+    void deleteByMovie(Movie movie);
 }
