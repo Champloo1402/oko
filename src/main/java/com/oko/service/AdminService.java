@@ -3,6 +3,7 @@ package com.oko.service;
 import com.oko.dto.response.MovieResponse;
 import com.oko.dto.response.UserSummaryResponse;
 import com.oko.entity.Movie;
+import com.oko.entity.MovieList;
 import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.repository.*;
@@ -74,6 +75,10 @@ public class AdminService {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
 
+
+        List<MovieList> listsContainingMovie = movieListRepository.findByMoviesContaining(movie);
+        listsContainingMovie.forEach(list -> list.getMovies().remove(movie));
+        movieListRepository.saveAll(listsContainingMovie);
         reviewRepository.deleteByMovie(movie);
         diaryEntryRepository.deleteByMovie(movie);
         watchlistRepository.deleteByMovie(movie);
