@@ -42,6 +42,9 @@ public class Movie {
     @Column(name = "language")
     private String language;
 
+    @Column(name = "tmdb_rating")
+    private Double tmdbRating;
+
     @ManyToMany
     @JoinTable(
             name = "movie_genres",

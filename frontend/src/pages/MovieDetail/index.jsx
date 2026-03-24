@@ -23,7 +23,6 @@ export default function MovieDetail() {
   const { id }       = useParams();
   const location     = useLocation();
   const { user }     = useAuth();
-  // tmdbId passed via navigation state so we can sync on 404
   const tmdbIdFromState = location.state?.tmdbId;
 
   const [movie,    setMovie]    = useState(null);
@@ -34,32 +33,27 @@ export default function MovieDetail() {
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
 
-  // User states
   const [liked,            setLiked]            = useState(false);
   const [watched,          setWatched]          = useState(false);
   const [likeCount,        setLikeCount]        = useState(0);
   const [inWatchlist,      setInWatchlist]      = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
 
-  // Add to list dropdown
   const [showListDropdown, setShowListDropdown] = useState(false);
   const [userLists,        setUserLists]        = useState([]);
   const [listsLoading,     setListsLoading]     = useState(false);
-  const [addingToList,     setAddingToList]     = useState(null); // listId currently being added
+  const [addingToList,     setAddingToList]     = useState(null);
   const listDropdownRef = useRef(null);
 
-  // Toast notification
   const [toast,     setToast]     = useState('');
   const [toastType, setToastType] = useState('ok');
 
-  // Review modal
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating,   setReviewRating]   = useState(0);
   const [reviewContent,  setReviewContent]  = useState('');
   const [reviewSpoiler,  setReviewSpoiler]  = useState(false);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
-  // Diary modal
   const [showDiaryForm, setShowDiaryForm] = useState(false);
   const [diaryDate,     setDiaryDate]     = useState(new Date().toISOString().slice(0, 10));
   const [diaryRating,   setDiaryRating]   = useState(0);
@@ -93,15 +87,12 @@ export default function MovieDetail() {
       try {
         await tryLoad(localId);
       } catch (err) {
-        console.error('MovieDetail first load failed:', err?.response?.status, err?.message, 'tmdbIdFromState:', tmdbIdFromState);
-        // On 404, try syncing via tmdbId then retry
         if (err?.response?.status === 404 && tmdbIdFromState) {
           try {
             const { data: synced } = await syncMovie(tmdbIdFromState);
             localId = synced.id;
             await tryLoad(localId);
-          } catch (err2) {
-            console.error('MovieDetail retry after sync failed:', err2?.response?.status, err2?.message);
+          } catch {
             setError('Could not load this film. Please try again.');
           }
         } else {
@@ -124,14 +115,12 @@ export default function MovieDetail() {
     } catch {}
   };
 
-  // Toast helper — auto-dismisses after 2.5s
   const showToast = useCallback((msg, type = 'ok') => {
     setToast(msg);
     setToastType(type);
     setTimeout(() => setToast(''), 2500);
   }, []);
 
-  // Toggles — always use localId (the DB primary key, not tmdbId)
   const localId = movie?.localId ?? movie?.id;
 
   const toggleLike = async () => {
@@ -150,7 +139,6 @@ export default function MovieDetail() {
     } catch {}
   };
 
-  // Watchlist toggle with loading state + toast
   const toggleWatchlist = async () => {
     if (watchlistLoading) return;
     setWatchlistLoading(true);
@@ -171,10 +159,9 @@ export default function MovieDetail() {
     }
   };
 
-  // Add to list — open dropdown and load user's lists on first open
   const openListDropdown = async () => {
     setShowListDropdown((v) => !v);
-    if (userLists.length > 0) return; // already loaded
+    if (userLists.length > 0) return;
     setListsLoading(true);
     try {
       const { data } = await getUserLists(user.username);
@@ -197,7 +184,6 @@ export default function MovieDetail() {
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     if (!showListDropdown) return;
     const handler = (e) => {
@@ -209,7 +195,6 @@ export default function MovieDetail() {
     return () => document.removeEventListener('mousedown', handler);
   }, [showListDropdown]);
 
-  // Submit review
   const submitReview = async (e) => {
     e.preventDefault();
     setReviewSubmitting(true);
@@ -228,7 +213,6 @@ export default function MovieDetail() {
     finally { setReviewSubmitting(false); }
   };
 
-  // Submit diary
   const submitDiary = async (e) => {
     e.preventDefault();
     try {
@@ -264,7 +248,7 @@ export default function MovieDetail() {
 
   const {
     title, releaseYear, runtimeMinutes, language, genres,
-    overview, posterUrl, averageRating,
+    overview, posterUrl, averageRating, tmdbRating,
   } = movie;
 
   const backdropUrl = movie.backdropUrl?.replace('/w500/', '/w1280/');
@@ -276,7 +260,6 @@ export default function MovieDetail() {
   return (
       <div className="animate-fade-in relative">
 
-        {/* ── Toast notification ──────────────────────────────────────────── */}
         {toast && (
             <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-lg text-sm font-medium shadow-xl transition-all animate-slide-up
           ${toastType === 'err'
@@ -287,7 +270,6 @@ export default function MovieDetail() {
             </div>
         )}
 
-        {/* ── Backdrop ───────────────────────────────────────────────────── */}
         <div className="relative h-72 md:h-96 overflow-hidden">
           {backdropUrl ? (
               <>
@@ -300,11 +282,9 @@ export default function MovieDetail() {
           )}
         </div>
 
-        {/* ── Content ────────────────────────────────────────────────────── */}
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex gap-6 -mt-28 relative z-10">
 
-            {/* Poster */}
             <div className="flex-shrink-0 w-36 md:w-44">
               <div className="aspect-[2/3] rounded-lg overflow-hidden border-2 border-oko-border shadow-2xl">
                 {posterUrl ? (
@@ -317,11 +297,9 @@ export default function MovieDetail() {
               </div>
             </div>
 
-            {/* Info */}
             <div className="flex-1 pt-28 md:pt-32">
               <h1 className="text-2xl md:text-3xl font-bold text-oko-text leading-tight">{title}</h1>
 
-              {/* Directors — filtered from cast where roleType === 'DIRECTOR' */}
               {cast.filter((c) => c.roleType === 'DIRECTOR').length > 0 && (
                   <p className="text-sm text-oko-muted mt-1">
                     Directed by{' '}
@@ -357,16 +335,24 @@ export default function MovieDetail() {
                   </div>
               )}
 
-              {averageRating > 0 && (
-                  <div className="flex items-center gap-2 mt-3">
-                    <StarDisplay rating={averageRating} size="sm" />
-                    <span className="text-xs text-oko-subtle">{averageRating.toFixed(1)} avg</span>
-                  </div>
-              )}
+              {/* Ratings row */}
+              <div className="flex flex-wrap items-center gap-4 mt-3">
+                {averageRating > 0 && (
+                    <div className="flex items-center gap-2">
+                      <StarDisplay rating={averageRating} size="sm" />
+                      <span className="text-xs text-oko-subtle">{averageRating.toFixed(1)} OKO avg</span>
+                    </div>
+                )}
+                {tmdbRating > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-yellow-400">TMDB</span>
+                      <span className="text-xs text-oko-subtle">{tmdbRating.toFixed(1)}</span>
+                    </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* ── Action bar ──────────────────────────────────────────────── */}
           {user && (
               <div className="flex flex-wrap gap-2 mt-6">
                 <ActionBtn active={watched} onClick={toggleWatched}
@@ -395,7 +381,6 @@ export default function MovieDetail() {
                     label="Write review"
                     primary
                 />
-                {/* Add to list — dropdown */}
                 <div className="relative" ref={listDropdownRef}>
                   <ActionBtn
                       onClick={openListDropdown}
@@ -442,12 +427,10 @@ export default function MovieDetail() {
               </div>
           )}
 
-          {/* ── Overview ────────────────────────────────────────────────── */}
           {overview && (
               <p className="mt-6 text-sm text-oko-muted leading-relaxed max-w-2xl">{overview}</p>
           )}
 
-          {/* ── Cast ────────────────────────────────────────────────────── */}
           {cast.length > 0 && (
               <section className="mt-10">
                 <SectionTitle>Cast &amp; Crew</SectionTitle>
@@ -477,7 +460,6 @@ export default function MovieDetail() {
               </section>
           )}
 
-          {/* ── Reviews ─────────────────────────────────────────────────── */}
           <section className="mt-10 mb-16">
             <SectionTitle>Reviews</SectionTitle>
 
@@ -502,7 +484,6 @@ export default function MovieDetail() {
           </section>
         </div>
 
-        {/* ── Review modal ────────────────────────────────────────────────── */}
         {showReviewForm && (
             <Modal onClose={() => setShowReviewForm(false)} title={`Review — ${title}`}>
               <form onSubmit={submitReview} className="space-y-4">
@@ -534,7 +515,6 @@ export default function MovieDetail() {
             </Modal>
         )}
 
-        {/* ── Diary modal ─────────────────────────────────────────────────── */}
         {showDiaryForm && (
             <Modal onClose={() => setShowDiaryForm(false)} title={`Log to diary — ${title}`}>
               <form onSubmit={submitDiary} className="space-y-4">
@@ -568,8 +548,6 @@ export default function MovieDetail() {
       </div>
   );
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function ActionBtn({ onClick, label, icon, active, activeClass, primary, disabled }) {
   const base = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border transition-colors disabled:opacity-60 disabled:cursor-not-allowed';

@@ -31,5 +31,6 @@ public class MovieResponse {
     private Double averageRating;
     private Integer likeCount;
     private Boolean likedByCurrentUser;
+    private Double tmdbRating;
 
 }

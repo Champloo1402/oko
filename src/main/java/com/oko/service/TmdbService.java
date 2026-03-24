@@ -47,6 +47,7 @@ public class TmdbService {
                 .map(this::findOrCreateGenre)
                 .collect(Collectors.toSet());
         movie.setGenres(genres);
+        movie.setTmdbRating(response.getVoteAverage());
         return movie;
     }
 

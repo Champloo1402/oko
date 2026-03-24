@@ -30,4 +30,7 @@ public class TmdbMovieDetailResponse {
     private String originalLanguage;
 
     private List<TmdbGenreResponse> genres;
+
+    @JsonProperty("vote_average")
+    private Double voteAverage;
 }

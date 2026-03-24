@@ -66,6 +66,7 @@ public class MovieService {
                 })
                 .collect(Collectors.toList());
         movieResponse.setGenres(genres);
+        movieResponse.setTmdbRating(movie.getTmdbRating());
 
         Double avg = reviewRepository.findAverageRatingByMovie(movie).orElse(null);
         movieResponse.setAverageRating(avg != null ? Math.round(avg * 10.0) / 10.0 : null);
