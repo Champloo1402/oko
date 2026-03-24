@@ -79,6 +79,20 @@ public class AdminService {
         List<MovieList> listsContainingMovie = movieListRepository.findByMoviesContaining(movie);
         listsContainingMovie.forEach(list -> list.getMovies().remove(movie));
         movieListRepository.saveAll(listsContainingMovie);
+        userRepository.findAll().stream()
+                .filter(u -> movie.equals(u.getFavoriteFilm1()) ||
+                        movie.equals(u.getFavoriteFilm2()) ||
+                        movie.equals(u.getFavoriteFilm3()) ||
+                        movie.equals(u.getFavoriteFilm4()) ||
+                        movie.equals(u.getFavoriteFilm5()))
+                .forEach(u -> {
+                    if (movie.equals(u.getFavoriteFilm1())) u.setFavoriteFilm1(null);
+                    if (movie.equals(u.getFavoriteFilm2())) u.setFavoriteFilm2(null);
+                    if (movie.equals(u.getFavoriteFilm3())) u.setFavoriteFilm3(null);
+                    if (movie.equals(u.getFavoriteFilm4())) u.setFavoriteFilm4(null);
+                    if (movie.equals(u.getFavoriteFilm5())) u.setFavoriteFilm5(null);
+                    userRepository.save(u);
+                });
         reviewRepository.deleteByMovie(movie);
         diaryEntryRepository.deleteByMovie(movie);
         watchlistRepository.deleteByMovie(movie);
