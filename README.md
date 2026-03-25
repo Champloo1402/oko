@@ -126,8 +126,11 @@ oko/
 │       ├── java/com/oko/
 │       │   ├── config/
 │       │   ├── controller/
+│       │   ├── dto/
 │       │   ├── entity/
+│       │   ├── exception/
 │       │   ├── repository/
+│       │   ├── security/
 │       │   ├── service/
 │       │   └── external/tmdb/
 │       └── resources/
