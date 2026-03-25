@@ -2,7 +2,8 @@
 
 A social film tracking web application inspired by Letterboxd. Users can discover movies, log what they've watched, write reviews, keep a diary, build watchlists and lists, and follow other members.
 
-**Live demo:** https://web-production-f5563.up.railway.app
+**Live demo:** https://web-production-f5563.up.railway.app  
+**Frontend:** https://oko-three.vercel.app/
 
 ---
 
@@ -38,7 +39,8 @@ A social film tracking web application inspired by Letterboxd. Users can discove
 - Heroicons
 
 **Infrastructure**
-- Deployed on Railway (backend + PostgreSQL)
+- Backend and PostgreSQL deployed on Railway
+- Frontend deployed on Vercel
 - Docker + Docker Compose for local development
 - nginx for serving the React build in Docker
 
