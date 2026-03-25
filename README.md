@@ -1,9 +1,9 @@
 # OKO
 
-A social film tracking web application inspired by Letterboxd. Users can discover movies, log what they've watched, write reviews, keep a diary, build watchlists and lists, and follow other members.
+A social film tracking web application inspired by [Letterboxd](https://letterboxd.com/). Users can discover movies, log what they've watched, write reviews, keep a diary, build watchlists and lists, and follow other members.
 
-**Live demo:** https://web-production-f5563.up.railway.app  
-**Frontend:** https://oko-three.vercel.app/
+**Live demo:** https://oko-three.vercel.app/
+
 
 ---
 
@@ -32,7 +32,7 @@ A social film tracking web application inspired by Letterboxd. Users can discove
 - TMDB API integration via WebClient
 
 **Frontend**
-- React 18 (Create React App)
+- React 18 
 - React Router v6
 - Axios
 - Tailwind CSS
