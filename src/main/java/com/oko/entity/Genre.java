@@ -1,9 +1,13 @@
 package com.oko.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "genres")
 public class Genre {
@@ -15,4 +19,15 @@ public class Genre {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if(!(obj instanceof Genre other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

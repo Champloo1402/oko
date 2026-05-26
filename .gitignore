@@ -36,3 +36,4 @@ build/
 .env
 frontend/node_modules/
 frontend/build/
+src/main/resources/application-dev.properties

@@ -66,7 +66,7 @@ public class AdminService {
     public List<MovieResponse> getAllMovies() {
         return movieRepository.findAll()
                 .stream()
-                .map(movieService::mapToMovieResponse)
+                .map(movie -> movieService.mapToMovieResponse(movie, null))
                 .toList();
     }
 
@@ -79,12 +79,7 @@ public class AdminService {
         List<MovieList> listsContainingMovie = movieListRepository.findByMoviesContaining(movie);
         listsContainingMovie.forEach(list -> list.getMovies().remove(movie));
         movieListRepository.saveAll(listsContainingMovie);
-        userRepository.findAll().stream()
-                .filter(u -> movie.equals(u.getFavoriteFilm1()) ||
-                        movie.equals(u.getFavoriteFilm2()) ||
-                        movie.equals(u.getFavoriteFilm3()) ||
-                        movie.equals(u.getFavoriteFilm4()) ||
-                        movie.equals(u.getFavoriteFilm5()))
+        userRepository.findByAnyFavoriteFilm(movie)
                 .forEach(u -> {
                     if (movie.equals(u.getFavoriteFilm1())) u.setFavoriteFilm1(null);
                     if (movie.equals(u.getFavoriteFilm2())) u.setFavoriteFilm2(null);

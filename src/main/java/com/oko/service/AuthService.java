@@ -8,6 +8,7 @@ import com.oko.exception.DuplicateResourceException;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.repository.UserRepository;
 import com.oko.security.JwtTokenProvider;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,11 +24,12 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
 
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         String username = request.getUsername();
         String email = request.getEmail();
         String password = request.getPassword();
-        String passwordHashed = passwordEncoder.encode(password);
+
 
         if(userRepository.existsByUsername(username)){
             throw new DuplicateResourceException("Username is already in use");
@@ -36,6 +38,8 @@ public class AuthService {
         if(userRepository.existsByEmail(email)){
             throw new DuplicateResourceException("Email is already in use");
         }
+
+        String passwordHashed = passwordEncoder.encode(password);
 
         User user = new User();
         user.setUsername(username);
@@ -49,6 +53,7 @@ public class AuthService {
         return new AuthResponse(token, username, user.getRole().name());
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         String usernameOrEmail = request.getUsernameOrEmail();
         String password = request.getPassword();

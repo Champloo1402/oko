@@ -32,7 +32,7 @@ public class WatchedMovieService {
         watched.setUser(user);
         watched.setMovie(movie);
 
-        return mapToResponse(watchedMovieRepository.save(watched));
+        return mapToResponse(watchedMovieRepository.save(watched), user);
     }
 
     @Transactional
@@ -60,10 +60,10 @@ public class WatchedMovieService {
         return watchedMovieRepository.countByUser(user);
     }
 
-    private WatchedMovieResponse mapToResponse(WatchedMovie watched) {
+    private WatchedMovieResponse mapToResponse(WatchedMovie watched, User currentUser) {
         WatchedMovieResponse response = new WatchedMovieResponse();
         response.setId(watched.getId());
-        response.setMovie(movieService.mapToMovieResponse(watched.getMovie()));
+        response.setMovie(movieService.mapToMovieResponse(watched.getMovie(), currentUser));
         response.setWatchedAt(watched.getWatchedAt());
         return response;
     }

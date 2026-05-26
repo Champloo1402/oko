@@ -37,7 +37,7 @@ public class WatchlistService {
         watchlistEntry.setUser(user);
         watchlistEntry.setMovie(movie);
 
-        return mapToWatchlistResponse(watchlistRepository.save(watchlistEntry));
+        return mapToWatchlistResponse(watchlistRepository.save(watchlistEntry), user);
     }
 
     @Transactional
@@ -53,20 +53,21 @@ public class WatchlistService {
     public PageResponse<WatchlistResponse> getWatchlist(Pageable pageable) {
         User user = userService.getCurrentUser();
         return PageResponse.of(watchlistRepository.findByUser(user, pageable)
-                .map(this::mapToWatchlistResponse));
+                .map(entry -> mapToWatchlistResponse(entry, user)));
     }
 
     @Transactional(readOnly = true)
     public PageResponse<WatchlistResponse> getWatchlistByUsername(String username, Pageable pageable) {
-        User user = userService.getUserByUsername(username);
+        User user = userService.getUserByUsername(username);       // list owner
+        User currentUser = userService.getCurrentUserOrNull();     // logged in viewer
         return PageResponse.of(watchlistRepository.findByUser(user, pageable)
-                .map(this::mapToWatchlistResponse));
+                .map(entry -> mapToWatchlistResponse(entry, currentUser)));
     }
 
-    private WatchlistResponse mapToWatchlistResponse(WatchlistEntry entry){
+    private WatchlistResponse mapToWatchlistResponse(WatchlistEntry entry, User currentUser){
         WatchlistResponse watchlistResponse = new WatchlistResponse();
         watchlistResponse.setId(entry.getId());
-        watchlistResponse.setMovie(movieService.mapToMovieResponse(entry.getMovie()));
+        watchlistResponse.setMovie(movieService.mapToMovieResponse(entry.getMovie(), currentUser));
         watchlistResponse.setAddedAt(entry.getAddedAt());
 
         return watchlistResponse;

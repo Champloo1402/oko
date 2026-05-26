@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +20,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.movie = :movie")
     Optional<Double> findAverageRatingByMovie(Movie movie);
     void deleteByUser(User user);
-    List<Review> findByUserInOrderByCreatedAtDesc(List<User> users);
+    List<Review> findByUserInOrderByCreatedAtDesc(List<User> users, Pageable pageable);
     int countByUser(User user);
 
     void deleteByMovie(Movie movie);
+
+    @Query("SELECT r.movie.id, AVG(r.rating) FROM Review r WHERE r.movie.id IN :movieIds GROUP BY r.movie.id")
+    List<Object[]> findAverageRatingsByMovieIds(@Param("movieIds") List<Long> movieIds);
 }

@@ -4,6 +4,7 @@ import com.oko.dto.response.MovieCastResponse;
 import com.oko.dto.response.PersonResponse;
 import com.oko.entity.MovieCast;
 import com.oko.entity.Person;
+import com.oko.entity.User;
 import com.oko.exception.ResourceNotFoundException;
 import com.oko.external.tmdb.TmdbClient;
 import com.oko.external.tmdb.dto.TmdbPersonMovieCreditsResponse;
@@ -64,6 +65,7 @@ public class PersonService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public TmdbPersonMovieCreditsResponse getTmdbFilmography(Long personId) {
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found"));
@@ -85,7 +87,7 @@ public class PersonService {
         response.setCharacterName(cast.getCharacterName());
         response.setRoleType(cast.getRoleType().name());
         response.setOrderIndex(cast.getOrderIndex());
-        response.setMovie(movieService.mapToMovieResponse(cast.getMovie()));
+        response.setMovie(movieService.mapToMovieResponse(cast.getMovie(), null));
         return response;
     }
 }

@@ -36,7 +36,7 @@ public class DiaryService {
         entry.setRating(request.getRating());
         entry.setRewatch(request.isRewatch());
         entry.setNote(request.getNote());
-        return mapDiaryEntryToResponse(diaryEntryRepository.save(entry));
+        return mapDiaryEntryToResponse(diaryEntryRepository.save(entry),  user);
     }
 
     @Transactional
@@ -53,15 +53,17 @@ public class DiaryService {
 
     @Transactional(readOnly = true)
     public PageResponse<DiaryEntryResponse> getDiary(String username, Pageable pageable) {
-        User user = userService.getUserByUsername(username);
+        User user = userService.getUserByUsername(username);       // list owner
+        User currentUser = userService.getCurrentUserOrNull();     // logged in viewer
         return PageResponse.of(diaryEntryRepository.findByUserOrderByWatchedOnDesc(user, pageable)
-                .map(this::mapDiaryEntryToResponse));
+                .map(entry -> mapDiaryEntryToResponse(entry, currentUser)));
     }
 
-    private DiaryEntryResponse mapDiaryEntryToResponse(DiaryEntry entry) {
+
+    private DiaryEntryResponse mapDiaryEntryToResponse(DiaryEntry entry, User currentUser) {
         DiaryEntryResponse response = new DiaryEntryResponse();
         response.setId(entry.getId());
-        response.setMovie(movieService.mapToMovieResponse(entry.getMovie()));
+        response.setMovie(movieService.mapToMovieResponse(entry.getMovie(), currentUser));
         response.setWatchedOn(entry.getWatchedOn());
         response.setRating(entry.getRating());
         response.setRewatch(entry.isRewatch());

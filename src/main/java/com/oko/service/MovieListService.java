@@ -34,7 +34,7 @@ public class MovieListService {
         list.setDescription(request.getDescription());
         list.setPublicList(request.isPublic());
 
-        return mapToResponse(movieListRepository.save(list));
+        return mapToResponse(movieListRepository.save(list), user);
     }
 
     @Transactional
@@ -49,7 +49,7 @@ public class MovieListService {
 
         list.getMovies().add(movie);
         list.setUpdatedAt(LocalDateTime.now());
-        return mapToResponse(movieListRepository.save(list));
+        return mapToResponse(movieListRepository.save(list), user);
     }
 
     @Transactional
@@ -60,7 +60,7 @@ public class MovieListService {
 
         list.getMovies().remove(movie);
         list.setUpdatedAt(LocalDateTime.now());
-        return mapToResponse(movieListRepository.save(list));
+        return mapToResponse(movieListRepository.save(list), user);
     }
 
     @Transactional
@@ -73,17 +73,19 @@ public class MovieListService {
     @Transactional(readOnly = true)
     public List<MovieListResponse> getUserLists(String username) {
         User user = userService.getUserByUsername(username);
+        User currentUser = userService.getCurrentUserOrNull();
         return movieListRepository.findByUserOrderByCreatedAtDesc(user)
                 .stream()
-                .map(this::mapToResponse)
+                .map(list -> mapToResponse(list, currentUser))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public MovieListResponse getListById(Long listId) {
+        User currentUser = userService.getCurrentUserOrNull();
         MovieList list = movieListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("List not found"));
-        return mapToResponse(list);
+        return mapToResponse(list, currentUser);
     }
 
     private MovieList getListAndVerifyOwnership(Long listId, User user) {
@@ -95,16 +97,14 @@ public class MovieListService {
         return list;
     }
 
-    private MovieListResponse mapToResponse(MovieList list) {
+    private MovieListResponse mapToResponse(MovieList list, User currentUser) {
         MovieListResponse response = new MovieListResponse();
         response.setId(list.getId());
         response.setUsername(list.getUser().getUsername());
         response.setName(list.getName());
         response.setDescription(list.getDescription());
         response.setPublicList(list.isPublicList());
-        response.setMovies(list.getMovies().stream()
-                .map(movieService::mapToMovieResponse)
-                .toList());
+        response.setMovies(movieService.mapToMovieResponses(list.getMovies(), currentUser));
         response.setMovieCount(list.getMovies().size());
         response.setCreatedAt(list.getCreatedAt());
         response.setUpdatedAt(list.getUpdatedAt());

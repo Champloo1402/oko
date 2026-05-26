@@ -49,8 +49,7 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByUsername(currentUsername).orElse(null);
+        User currentUser = getCurrentUserOrNull();
 
         UserProfileResponse response = new UserProfileResponse();
         response.setId(user.getId());
@@ -64,7 +63,7 @@ public class UserService {
                         user.getFavoriteFilm3(), user.getFavoriteFilm4(),
                         user.getFavoriteFilm5())
                 .filter(Objects::nonNull)
-                .map(movieService::mapToMovieResponse)
+                .map(movie -> movieService.mapToMovieResponse(movie, currentUser))
                 .toList();
         response.setFavFilms(favFilms);
 
@@ -154,6 +153,16 @@ public class UserService {
     public PageResponse<UserSummaryResponse> searchUsers(String query, Pageable pageable) {
         return PageResponse.of(userRepository.findByUsernameContainingIgnoreCase(query, pageable)
                 .map(this::mapToUserSummaryResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public User getCurrentUserOrNull() {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            return userRepository.findByUsername(username).orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }
